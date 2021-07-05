@@ -26,11 +26,12 @@
 #include <wx/font.h>
 #include <wx/gauge.h>
 #include <wx/listbox.h>
+#include <wx/msgdlg.h>
 #include <wx/numdlg.h> 
 #include <wx/panel.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/textdlg.h> 
+#include <wx/textdlg.h>
 class MyApp : public wxApp
 {
 public:
@@ -44,6 +45,7 @@ public:
 	wxListBox* gui_choice;
 	wxTextCtrl* gui_disp;
 	wxTextCtrl* gui_info;
+	wxMessageDialog* gui_about;
 	//wxGauge* gui_gauge;
 	
 	void displayAndRun(wxCommandEvent& event);
@@ -51,6 +53,7 @@ public:
 	wxString getTextInput(wxString message, wxString prompt, wxString caption);
 	double getDblInput(wxString message, wxString prompt, wxString caption);
 	int getIntInput(wxString message, wxString prompt, wxString caption);
+	void onAbout(wxCommandEvent& event);
 	void proj1();
 	void proj2();
 	void proj3();
@@ -92,12 +95,14 @@ private:
 		ID_panel_choice = 13,
 		ID_panel_controls = 14,
 		ID_button_display = 21,
-		ID_button_run = 22
+		ID_button_run = 22,
+		ID_button_about = 23
 	};
 };
 BEGIN_EVENT_TABLE(MainFrame, wxFrame)
 EVT_BUTTON(ID_button_display, MainFrame::displayAndRun)
 EVT_BUTTON(ID_button_run, MainFrame::displayAndRun)
+EVT_BUTTON(ID_button_about, MainFrame::onAbout)
 //EVT_LISTBOX_DCLICK(gui_choice, MainFrame::buttonDisplay)
 END_EVENT_TABLE()
 wxIMPLEMENT_APP(MyApp);
@@ -152,6 +157,7 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
 	wxPanel* panel_controls = new wxPanel(this, ID_panel_controls, wxDefaultPosition, wxSize(200, 200), wxBORDER_RAISED);
 	gui_info = new wxTextCtrl(this, ID_info, wxString("The description of the project will be displayed here."), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_MULTILINE | wxTE_RICH | wxBORDER_THEME);
 	//gui_gauge = new wxGauge(this, ID_gauge, INT_MAX, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL);//disabled for performance
+	gui_about = new wxMessageDialog(this, wxString ("Select a project and press Display to display the code or Run to run the project! \n This program was created by Zack Green on 2021/07/05 using C++ and wxWidgets \n github.com/Z-With-Glasses"), wxString(""), wxOK | wxSTAY_ON_TOP, wxDefaultPosition);
 
 	wxBoxSizer* sizer_main = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizer_left = new wxBoxSizer(wxVERTICAL);
@@ -168,8 +174,10 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
 
 	wxButton* button_display = new wxButton(panel_controls, ID_button_display, _T("Display"), wxPoint(50, 30), wxSize(100, 30));
 	wxButton* button_run = new wxButton(panel_controls, ID_button_run, _T("Run"), wxPoint(50, 80), wxSize(100, 30));
+	wxButton* button_about = new wxButton(panel_controls, ID_button_about, _T("Info"), wxPoint(85, 130), wxSize(30, 30));
 	button_display->Bind(wxEVT_BUTTON, &MainFrame::displayAndRun, this);
 	button_run->Bind(wxEVT_BUTTON, &MainFrame::displayAndRun, this);
+	button_about->Bind(wxEVT_BUTTON, &MainFrame::onAbout, this);
 
 	gui_disp->SetBackgroundColour(*wxBLACK);
 	gui_disp->SetForegroundColour(*wxGREEN);
@@ -185,6 +193,11 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
 	this->SetSize(wxSize(1200, 1000));
 	this->CenterOnScreen();
 }
+void MainFrame::onAbout(wxCommandEvent& event)
+{
+	gui_about->ShowModal();
+}
+
 long MainFrame::getNumInput(wxString message, wxString prompt, wxString caption)
 {
 	long input{ wxGetNumberFromUser(wxString(message), wxString(prompt), wxString(caption), long{}, long {LONG_MIN}, long {LONG_MAX}, gui_disp, wxDefaultPosition) };
@@ -944,7 +957,7 @@ void MainFrame::proj23Auto()
 	int secondChoice{};
 	double keepWinCounter{};
 	double swapWinCounter{};
-	std::cout << "Up to 25 iterations can be actively watched," << '\n'
+	std::cout << "Up to 100 iterations can be actively watched," << '\n'
 				<< "or up to "  << std::setprecision(2) << std::fixed << std::numeric_limits<double>::max() << '\n' 
 				<< "iterations can be done behind the scenes." << '\n' 
 				<< "About 25s run time for 100,000,000 iterations on creator's machine." << '\n' 
@@ -953,7 +966,7 @@ void MainFrame::proj23Auto()
 	double iterations { getDblInput(wxString { "Enter amount of iterations." },wxString { "" }, wxString { "" }) };
 	wxBusyCursor wait;
 	auto start = std::chrono::high_resolution_clock::now();
-	//gui_gauge->SetRange(iterations);
+	std::cout << std::setprecision(0) << "Running " << iterations << " times..." << '\n' << '\n';
 	for (int count = 0; count < iterations; count++) //user chooses how many times to run this loop
 	{
 		correctDoor = (rand() % 3) + 1; //randomly picks the correct door
@@ -980,29 +993,29 @@ void MainFrame::proj23Auto()
 		if (secondChoice == correctDoor)//counts wins for swapping
 			++swapWinCounter;
 
-		if (iterations < 26)
+		if (count % 100000 == 0)
+		{
+			gui_out->Clear();
+			std::cout << count << " iterations ran.";
+			gui_out->Clear();
+		}
+
+
+		if (iterations <= 100)
 		{
 			std::cout << "The first choice was: " << firstChoice << '\n'
 				<< "The door removed was: " << removedDoor << '\n'
 				<< "The door picked if you chose to swap was: " << secondChoice << '\n'
 				<< "The correct door was: " << correctDoor << '\n' << '\n';
 		}
-		/*if (iterations < 50000)
-		{
-			gui_gauge->SetValue(count);
-			wxTheApp->Yield();
-		}
-		else
-			gui_gauge->Pulse();//slows down the function way too much*/
 	}
-	std::cout << "Wins for Keep: " << std::setprecision(0) << keepWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((keepWinCounter / iterations) * 100) << '%' << '\n'
+	std::cout << iterations << " iterations ran." << '\n' << "Wins for Keep: " << std::setprecision(0) << keepWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((keepWinCounter / iterations) * 100) << '%' << '\n'
 		<< "Wins for Swap: " << std::setprecision(0) << swapWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((swapWinCounter / iterations) * 100) << '%' << '\n' << '\n';
 
 	auto finish = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> elapsed = finish - start;
 	std::cout << "Run time: " << elapsed.count() << " s\n" << std::scientific;
 	wxString continueAuto{ getTextInput(wxString { "Run again?" },wxString { "" }, wxString { "" }) };
-	//gui_gauge->SetValue(0);
 	if (continueAuto == "yes" || continueAuto == "y")
 	{
 		gui_out->Clear();
