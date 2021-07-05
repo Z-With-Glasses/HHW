@@ -32,5 +32,8 @@
     <ClInclude Include="..\Addition.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="D:\wxWidgets-3.1.5\lib\vc_x64_lib\mswu\wx\setup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

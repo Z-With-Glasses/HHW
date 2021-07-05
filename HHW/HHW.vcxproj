@@ -59,19 +59,27 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\Downloads\wxMSW-3.1.5_vc14x_x64_Dev\wxwidgets.props" />
+    <Import Project="D:\wxWidgets-3.1.5\wxwidgets.props" />
+    <Import Project="..\..\..\..\Downloads\wxWidgets\wxwidgets.props" />
+    <Import Project="..\..\wxWidgets\wxwidgets.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\Downloads\wxMSW-3.1.5_vc14x_x64_Dev\wxwidgets.props" />
+    <Import Project="D:\wxWidgets-3.1.5\wxwidgets.props" />
+    <Import Project="..\..\..\..\Downloads\wxWidgets\wxwidgets.props" />
+    <Import Project="..\..\wxWidgets\wxwidgets.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\Downloads\wxMSW-3.1.5_vc14x_x64_Dev\wxwidgets.props" />
+    <Import Project="D:\wxWidgets-3.1.5\wxwidgets.props" />
+    <Import Project="..\..\..\..\Downloads\wxWidgets\wxwidgets.props" />
+    <Import Project="..\..\wxWidgets\wxwidgets.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\..\Downloads\wxMSW-3.1.5_vc14x_x64_Dev\wxwidgets.props" />
+    <Import Project="D:\wxWidgets-3.1.5\wxwidgets.props" />
+    <Import Project="..\..\..\..\Downloads\wxWidgets\wxwidgets.props" />
+    <Import Project="..\..\wxWidgets\wxwidgets.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -137,14 +145,20 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>C:\Users\zgree\source\repos\wxWidgets\include\msvc\wx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\zgree\source\repos\wxWidgets\lib\vc14x_x64_dll\mswu;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -155,6 +169,7 @@
     <ClInclude Include="..\Addition.h" />
     <ClInclude Include="..\HHWDescriptions.h" />
     <ClInclude Include="..\HHWProjStrings.h" />
+    <ClInclude Include="D:\wxWidgets-3.1.5\lib\vc_x64_lib\mswu\wx\setup.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

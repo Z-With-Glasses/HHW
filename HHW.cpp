@@ -2,9 +2,10 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
-#include "Addition.h" //Including the header for Addition.h, it's contents get added here at this point.
+#include "Addition.h"
 #include "HHWDescriptions.h"
 #include "HHWProjStrings.h"
+#include "setup.h"
 #include <cassert>
 #include <chrono>
 #include <cmath>
