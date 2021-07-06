@@ -35,7 +35,7 @@ static wxString proj2Info()
 	return str;
 }static wxString proj9Info()
 {
-	wxString str("This project asks the user to enter an integer, then a larger integer. THen it swaps the values if a smaller value was entered first.");
+	wxString str("This project asks the user to enter an integer, then a larger integer. Then it swaps the values if a smaller value was entered first.");
 	return str;
 }static wxString proj10Info()
 {

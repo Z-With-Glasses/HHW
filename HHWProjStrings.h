@@ -456,12 +456,29 @@ void proj16()
 //proj17 readNumber() and writeAnswer() are in addition.cpp with forward declarations in Addition.h
 std::string proj17String()
 {
-	std::string str{ R"(void proj17()
+	std::string str{ R"(
+int proj17ReadNumber(); //From Addition.h
+void proj17WriteAnswer(int input);
+
+int proj17ReadNumber()//From Addition.cpp
+{
+	int input{};
+	std::cout << "Enter an integer:";
+	std::cin >> input;
+	return input;
+}
+void proj17WriteAnswer(int input)
+{
+	std::cout << "The sum is " << input << '\n';
+}
+
+void proj17()
 {
 	int a{ proj17ReadNumber() };
 	int b{ proj17ReadNumber() };
 	proj17WriteAnswer(a + b);
-})" };
+}
+)" };
 return str;
 }
 //begin project 18
