@@ -22,9 +22,11 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <wx/arrstr.h>
+#include <wx/choicdlg.h> 
 #include <wx/colour.h>
 #include <wx/font.h>
-//#include <wx/gauge.h>
+#include <wx/gauge.h>
 #include <wx/listbox.h>
 #include <wx/msgdlg.h>
 #include <wx/numdlg.h> 
@@ -48,13 +50,14 @@ public:
 	wxTextCtrl* gui_info;
 	wxSplitterWindow* gui_split;
 	//wxMessageDialog* gui_about;
-	//wxGauge* gui_gauge;
+	wxGauge* gui_gauge;
 	
 	void displayAndRun(wxCommandEvent& event);
 	long getNumInput(wxString message, wxString prompt, wxString caption);
 	wxString getTextInput(wxString message, wxString prompt, wxString caption);
 	double getDblInput(wxString message, wxString prompt, wxString caption);
 	int getIntInput(wxString message, wxString prompt, wxString caption);
+	wxString singleChoiceInput(wxString message, wxString caption, wxArrayString aChoices);
 	void proj1();
 	void proj2();
 	void proj3();
@@ -90,7 +93,7 @@ private:
 		ID_choice = 2,
 		ID_disp = 3,
 		ID_info = 4,
-		//ID_gauge = 5,
+		ID_gauge = 5,
 		ID_panel_out = 11,
 		ID_panel_disp = 12,
 		ID_panel_choice = 13,
@@ -99,6 +102,7 @@ private:
 		ID_button_display = 21,
 		ID_button_run = 22,
 		ID_button_about = 23,
+		ID_enter = 31
 	};
 };
 //BEGIN_EVENT_TABLE(MainFrame, wxFrame)
@@ -107,6 +111,7 @@ private:
 //EVT_BUTTON(ID_button_about, MainFrame::onAbout)
 //EVT_LISTBOX_DCLICK(ID_dbl_click, MainFrame::displayAndRun)
 //EVT_LISTBOX(ID_sgl_click, MainFrame::displayAndRun)
+//EVT_COMMAND_ENTER(ID_enter, MainFrame::displayAndRun)
 //END_EVENT_TABLE()
 wxIMPLEMENT_APP(MyApp);
 bool MyApp::OnInit()
@@ -152,15 +157,15 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
     };
 
 	//wxPanel* panel_out = new wxPanel(this, ID_panel_out, wxDefaultPosition, wxSize(200, 200));
-	gui_split = new wxSplitterWindow(this, ID_splitter, wxDefaultPosition, wxSize(600,400), wxSP_3D);
+	gui_split = new wxSplitterWindow(this, ID_splitter, wxDefaultPosition, wxSize(600,400), wxSP_3D | wxSP_LIVE_UPDATE);
 	gui_out = new wxTextCtrl(gui_split, ID_out, wxString("The output of the selcted project will be displayed here as the project runs."), wxDefaultPosition, wxSize(600, 200), wxTE_READONLY | wxTE_MULTILINE | wxTE_DONTWRAP | wxTE_RICH | wxBORDER_THEME);
 	//wxPanel* panel_disp = new wxPanel(this, ID_panel_disp, wxDefaultPosition, wxSize(600, 200), wxBORDER_THEME);
 	gui_disp = new wxTextCtrl(gui_split, ID_out, wxString("The code for the selected project will be displayed here."), wxDefaultPosition, wxSize(600, 200), wxTE_READONLY | wxTE_MULTILINE | wxTE_DONTWRAP | wxTE_RICH | wxBORDER_THEME);
 	wxPanel* panel_choice = new wxPanel(this, ID_panel_choice, wxDefaultPosition, wxSize(315, 600), wxBORDER_RAISED);
-	gui_choice = new wxListBox(panel_choice, ID_choice, wxDefaultPosition, wxSize(315, 600), 25, choices, wxLB_SINGLE | wxVSCROLL);
+	gui_choice = new wxListBox(panel_choice, ID_choice, wxDefaultPosition, wxSize(315, 600), 25, choices, wxLB_SINGLE | wxVSCROLL | wxWANTS_CHARS);
 	//wxPanel* panel_controls = new wxPanel(this, ID_panel_controls, wxDefaultPosition, wxSize(300, 300), wxBORDER_RAISED);
 	gui_info = new wxTextCtrl(this, ID_info, wxString("Select a project to display the code or double click to run the project! \n\nThis program was created by Zack Green on 2021/07/05 using C++ and wxWidgets.\n\n           github.com/Z-With-Glasses"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_MULTILINE | wxTE_RICH | wxBORDER_THEME);
-	//gui_gauge = new wxGauge(this, ID_gauge, INT_MAX, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL);//disabled for performance
+	gui_gauge = new wxGauge(this, ID_gauge, INT_MAX, wxDefaultPosition, wxSize(315, 15), wxGA_HORIZONTAL);//affects performance negatively
 	//gui_about = new wxMessageDialog(this, wxString ("Select a project to display the code or double click to run the project! \nThis program was created by Zack Green on 2021/07/05 using C++ and wxWidgets.\n                            github.com/Z-With-Glasses"), wxString(""), wxOK | wxSTAY_ON_TOP, wxDefaultPosition);
 
 	wxBoxSizer* sizer_main = new wxBoxSizer(wxHORIZONTAL);
@@ -171,7 +176,7 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
 	sizer_left->Add(panel_choice, 0);
 	//sizer_left->Add(panel_controls, 0);
 	sizer_left->Add(gui_info, 1, wxEXPAND, 1);
-	//sizer_left->Add(gui_gauge);
+	sizer_left->Add(gui_gauge);
 	//sizer_right->Add(gui_disp, 1, wxEXPAND, 1);
 	//sizer_right->Add(gui_out, 1, wxEXPAND, 1);
 	//sizer_right->Add(gui_split, 1, wxEXPAND, 1);
@@ -187,6 +192,7 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
 	//button_about->Bind(wxEVT_BUTTON, &MainFrame::onAbout, this);
 	gui_choice->Bind(wxEVT_LISTBOX, &MainFrame::displayAndRun, this);
 	gui_choice->Bind(wxEVT_LISTBOX_DCLICK, &MainFrame::displayAndRun, this);
+	gui_choice->Bind(wxEVT_COMMAND_ENTER, &MainFrame::displayAndRun, this); //wxKeyEvent handler needed for this
 
 	gui_disp->SetBackgroundColour(*wxBLACK);
 	gui_disp->SetForegroundColour(*wxGREEN);
@@ -204,7 +210,7 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
 }
 long MainFrame::getNumInput(wxString message, wxString prompt, wxString caption)
 {
-	long input{ wxGetNumberFromUser(wxString(message), wxString(prompt), wxString(caption), long{}, long {LONG_MIN}, long {LONG_MAX}, gui_disp, wxDefaultPosition) };
+	long input{ wxGetNumberFromUser(wxString(message), wxString(prompt), wxString(caption), long{}, long {LONG_MIN}, long {LONG_MAX}) };
 	return input;
 }
 wxString MainFrame::getTextInput(wxString message, wxString prompt, wxString caption)
@@ -224,9 +230,14 @@ double MainFrame::getDblInput(wxString message, wxString prompt, wxString captio
 	double value = wxAtof(input);
 	return value;
 }
+wxString MainFrame::singleChoiceInput(wxString message, wxString caption, wxArrayString aChoices)
+{
+	wxString input{ wxGetSingleChoice(wxString(message), wxString(caption), wxArrayString (aChoices), gui_disp, wxCoord(850), wxCoord(350), false)};
+	return input;
+}
 void MainFrame::displayAndRun(wxCommandEvent& event)
 {
-	int andRun{ event.GetId() };
+	//int andRun{ event.GetId() };
 	int choice{ gui_choice->GetSelection() };
 	int evntType = event.GetEventType();
 		gui_out->Clear();
@@ -236,7 +247,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj1String());
 		SetStatusText("Project 1: Integer Doubling");
 		gui_info->SetLabel(proj1Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == wxEVT_COMMAND_ENTER)
 		{
 			proj1();
 			break;
@@ -246,7 +257,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj2String());
 		SetStatusText("Project 2: Integer Doubling w/ Parameter");
 		gui_info->SetLabel(proj2Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj2();
 			break;
@@ -256,7 +267,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj3String());
 		SetStatusText("Project 3: Forward Declaration Demonstration-Integer Addition");
 		gui_info->SetLabel(proj3Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj3();
 			break;
@@ -266,7 +277,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj4String());
 		SetStatusText("Project 4: Data Types And Sizes");
 		gui_info->SetLabel(proj4Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj4();
 			break;
@@ -276,7 +287,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj5String());
 		SetStatusText("Project 5: Prime Number Checker");
 		gui_info->SetLabel(proj5Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj5();
 			break;
@@ -286,7 +297,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj6String());
 		SetStatusText("Project 6: Character Usage Demonstration");
 		gui_info->SetLabel(proj6Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj6();
 			break;
@@ -296,7 +307,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj7String());
 		SetStatusText("Project 7: Constants Demonstration-Radius To Circumfrence");
 		gui_info->SetLabel(proj7Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj7();
 			break;
@@ -306,7 +317,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj8String());
 		SetStatusText("Project 8: Even Or Odd");
 		gui_info->SetLabel(proj8Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj8();
 			break;
@@ -316,7 +327,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj9String());
 		SetStatusText("Project 9: Low And High Integer Swap");
 		gui_info->SetLabel(proj9Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj9();
 			break;
@@ -326,7 +337,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj10String());
 		SetStatusText("Project 10: Positive Number Swap");
 		gui_info->SetLabel(proj10Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj10();
 			break;
@@ -336,7 +347,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj11String());
 		SetStatusText("Project 11: Years Lived Per Character In Name");
 		gui_info->SetLabel(proj11Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj11();
 			break;
@@ -346,7 +357,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj12String());
 		SetStatusText("Project 12: Character Replacement In Strings");
 		gui_info->SetLabel(proj12Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj12();
 			break;
@@ -356,7 +367,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj13String());
 		SetStatusText("Project 13: Enumerators And Enumerated Classes");
 		gui_info->SetLabel(proj13Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj13();
 			break;
@@ -366,7 +377,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj14String());
 		SetStatusText("Project 14: Struct Demonstration-Ad Revenue");
 		gui_info->SetLabel(proj14Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj14();
 			break;
@@ -376,7 +387,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj15String());
 		SetStatusText("Project 15: Struct Demonstration-Fractional Multiplication");
 		gui_info->SetLabel(proj15Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj15();
 			break;
@@ -386,7 +397,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj16String());
 		SetStatusText("Project 16: Struct Demonstration-RPG");
 		gui_info->SetLabel(proj16Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj16();
 			break;
@@ -396,7 +407,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj17String());
 		SetStatusText("Project 17: Integer Addition");
 		gui_info->SetLabel(proj17Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj17();
 			break;
@@ -406,7 +417,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj18String());
 		SetStatusText("Project 18: Floating Point Math With Error Catch");
 		gui_info->SetLabel(proj18Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj18();
 			break;
@@ -416,7 +427,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj19String());
 		SetStatusText("Project 19: Ball Drop From Tower #1");
 		gui_info->SetLabel(proj19Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj19();
 			break;
@@ -426,7 +437,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj20String());
 		SetStatusText("Project 20: Integer Addition With Switch Statement");
 		gui_info->SetLabel(proj20Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj20();
 			break;
@@ -436,7 +447,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj21String());
 		SetStatusText("Project 21: Loops And Nested Loops");
 		gui_info->SetLabel(proj21Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj21();
 			break;
@@ -446,7 +457,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj22String());
 		SetStatusText("Project 22: For Loop Of Evens");
 		gui_info->SetLabel(proj22Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj22();
 			break;
@@ -456,7 +467,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj23String());
 		SetStatusText("Project 23: The Monty Hall Problem");
 		gui_info->SetLabel(proj23Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj23();
 			break;
@@ -466,7 +477,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj24String());
 		SetStatusText("Project 24: Ball Drop From Tower #2: ");
 		gui_info->SetLabel(proj24Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj24();
 			break;
@@ -476,7 +487,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj25String());
 		SetStatusText("Project 25: Prime Number Check With Assert");
 		gui_info->SetLabel(proj25Info());
-		if (andRun == 22 || event.GetEventType() == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK)
 		{
 			proj25();
 			break;
@@ -962,70 +973,83 @@ void MainFrame::proj23Auto()
 	int secondChoice{};
 	double keepWinCounter{};
 	double swapWinCounter{};
-	std::cout << "Up to 100 iterations can be actively watched," << '\n'
-				<< "or up to "  << std::setprecision(2) << std::fixed << std::numeric_limits<double>::max() << '\n' 
-				<< "iterations can be done behind the scenes." << '\n' 
+	std::cout << std::setprecision(0) << std::fixed
+				<< "Up to 100 iterations can be actively watched, or up to 1,000,000,000 iterations can be done behind the scenes." << '\n' 
 				<< "About 25s run time for 100,000,000 iterations on creator's machine." << '\n' 
 				<< "About 238s run time for 1,000,000,000 iterations on creator's machine." << '\n' << '\n';
 
 	double iterations { getDblInput(wxString { "Enter amount of iterations." },wxString { "" }, wxString { "" }) };
-	wxBusyCursor wait;
-	auto start = std::chrono::high_resolution_clock::now();
-	std::cout << std::setprecision(0) << "Running " << iterations << " times..." << '\n' << '\n';
-	for (int count = 0; count < iterations; count++) //user chooses how many times to run this loop
+	if (iterations != 0)
 	{
-		correctDoor = (rand() % 3) + 1; //randomly picks the correct door
-		firstChoice = (rand() % 3) + 1;//randomly makes the first door choice
-		if (correctDoor != firstChoice)//removes one incorrect door if the first choice was incorrect (example: 6 - correctdoor(2) + firstchoice(1) = 3 or 6-2+1=3)
-			removedDoor = (6 - (correctDoor + firstChoice));
-		else if (correctDoor == 1 && firstChoice == 1)  //these next three ifs remove one incorrect door if the first choice was correct
-			removedDoor = (rand() % 2) + 2;				//randomly picks 2 or 3
-		else if (correctDoor == 2 && firstChoice == 2)
-			removedDoor = (rand() % 4) + 1 <= 2 ? 1 : 3;//randomly picks 1-4, if less than or equal to 2 evaluates to 1 else evaluates to 3
-		else if (correctDoor == 3 && firstChoice == 3)
-			removedDoor = (rand() % 2) + 1;				//randomly picks 1 or 2
+		wxBusyCursor wait;
+		auto start = std::chrono::high_resolution_clock::now();
+		//std::cout << std::setprecision(0) << std::fixed << "Running " << iterations << " times..." << '\n' << '\n';
+		gui_gauge->SetRange(iterations);
+		for (int count = 0; count < iterations; count++) //user chooses how many times to run this loop
+		{
+			correctDoor = (rand() % 3) + 1; //randomly picks the correct door
+			firstChoice = (rand() % 3) + 1;//randomly makes the first door choice
+			if (correctDoor != firstChoice)//removes one incorrect door if the first choice was incorrect (example: 6 - correctdoor(2) + firstchoice(1) = 3 or 6-2+1=3)
+				removedDoor = (6 - (correctDoor + firstChoice));
+			else if (correctDoor == 1 && firstChoice == 1)  //these next three ifs remove one incorrect door if the first choice was correct
+				removedDoor = (rand() % 2) + 2;				//randomly picks 2 or 3
+			else if (correctDoor == 2 && firstChoice == 2)
+				removedDoor = (rand() % 4) + 1 <= 2 ? 1 : 3;//randomly picks 1-4, if less than or equal to 2 evaluates to 1 else evaluates to 3
+			else if (correctDoor == 3 && firstChoice == 3)
+				removedDoor = (rand() % 2) + 1;				//randomly picks 1 or 2
 
-		if ((firstChoice == 1 && removedDoor == 2) || (firstChoice == 2 && removedDoor == 1))//swaps for door 3 if 1 or 2 were removed
-			secondChoice = 3;
-		else if ((firstChoice == 3 && removedDoor == 1) || (firstChoice == 1 && removedDoor == 3))//swaps for door 2 if 1 or 3 were removed
-			secondChoice = 2;
-		else if ((firstChoice == 2 && removedDoor == 3) || (firstChoice == 3 && removedDoor == 2))//swaps for door 1 if 2 or 3 were removed
-			secondChoice = 1;
+			if ((firstChoice == 1 && removedDoor == 2) || (firstChoice == 2 && removedDoor == 1))//swaps for door 3 if 1 or 2 were removed
+				secondChoice = 3;
+			else if ((firstChoice == 3 && removedDoor == 1) || (firstChoice == 1 && removedDoor == 3))//swaps for door 2 if 1 or 3 were removed
+				secondChoice = 2;
+			else if ((firstChoice == 2 && removedDoor == 3) || (firstChoice == 3 && removedDoor == 2))//swaps for door 1 if 2 or 3 were removed
+				secondChoice = 1;
 
-		if (firstChoice == correctDoor)//counts wins for not swapping
-			++keepWinCounter;
+			if (firstChoice == correctDoor)//counts wins for not swapping
+				++keepWinCounter;
 
-		if (secondChoice == correctDoor)//counts wins for swapping
-			++swapWinCounter;
+			if (secondChoice == correctDoor)//counts wins for swapping
+				++swapWinCounter;
 
-		if (count % 100000 == 0)
+			if (iterations <= 100000000)
+			{
+				if (count % 100000 == 0)
+				{
+					//std::cout << count << " iterations ran.";
+					gui_gauge->SetValue(count);
+				}
+			}
+			else
+			{
+				if (count % 100000 == 0)
+				{
+					gui_gauge->Pulse();
+				}
+			}
+
+
+			if (iterations <= 100)
+			{
+				std::cout << "The first choice was: " << firstChoice << '\n'
+					<< "The door removed was: " << removedDoor << '\n'
+					<< "The door picked if you chose to swap was: " << secondChoice << '\n'
+					<< "The correct door was: " << correctDoor << '\n' << '\n';
+			}
+		}
+		gui_gauge->SetValue(iterations);
+		std::cout << iterations << " iterations ran." << '\n' << "Wins for Keep: " << std::setprecision(0) << keepWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((keepWinCounter / iterations) * 100) << '%' << '\n'
+			<< "Wins for Swap: " << std::setprecision(0) << swapWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((swapWinCounter / iterations) * 100) << '%' << '\n' << '\n';
+
+		auto finish = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> elapsed = finish - start;
+		std::cout << "Run time: " << elapsed.count() << 's' << std::scientific;
+		//wxString continueAuto{ getTextInput(wxString { "Run again?" },wxString { "" }, wxString { "" }) };
+		int continueAuto = wxMessageBox("Run again?", " ", wxYES_NO, this);
+		if (continueAuto == wxYES)
 		{
 			gui_out->Clear();
-			std::cout << count << " iterations ran.";
-			gui_out->Clear();
+			proj23Auto();
 		}
-
-
-		if (iterations <= 100)
-		{
-			std::cout << "The first choice was: " << firstChoice << '\n'
-				<< "The door removed was: " << removedDoor << '\n'
-				<< "The door picked if you chose to swap was: " << secondChoice << '\n'
-				<< "The correct door was: " << correctDoor << '\n' << '\n';
-		}
-	}
-	std::cout << iterations << " iterations ran." << '\n' << "Wins for Keep: " << std::setprecision(0) << keepWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((keepWinCounter / iterations) * 100) << '%' << '\n'
-		<< "Wins for Swap: " << std::setprecision(0) << swapWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((swapWinCounter / iterations) * 100) << '%' << '\n' << '\n';
-
-	auto finish = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> elapsed = finish - start;
-	std::cout << "Run time: " << elapsed.count() << " s\n" << std::scientific;
-	//wxString continueAuto{ getTextInput(wxString { "Run again?" },wxString { "" }, wxString { "" }) };
-	int continueAuto = wxMessageBox("Run again?", " ", wxYES_NO, this);
-	if (continueAuto == wxYES)
-	{
-		gui_out->Clear();
-		proj23Auto();
 	}
 }
 void MainFrame::proj23Manual()
@@ -1041,9 +1065,15 @@ void MainFrame::proj23Manual()
 	uint64_t swapWinCounter{};
 	while (continueManual == wxYES)
 	{
-		start:
-		int firstChoice{ getIntInput(wxString { "Pick door 1, 2 or 3?" },wxString { "" }, wxString { "" }) };
-		if (firstChoice == 1 || firstChoice == 2 || firstChoice == 3)
+		//start:
+		//int firstChoice{ getIntInput(wxString { "Pick door 1, 2 or 3?" },wxString { "" }, wxString { "" }) };
+		wxArrayString manualChoices;
+		manualChoices.Add(wxT("1"));
+		manualChoices.Add(wxT("2"));
+		manualChoices.Add(wxT("3"));
+		wxString firstChoiceStr{ singleChoiceInput(wxString{ "Pick door 1, 2 or 3?" },wxString { "" }, manualChoices) };
+		int firstChoice = wxAtoi(firstChoiceStr);
+		if (firstChoice != 0)
 		{
 			correctDoor = (rand() % 3) + 1; //randomly picks the correct door
 			if (correctDoor != firstChoice) //removes one incorrect door if the first choice was incorrect (example: 6 - correctdoor(2) + firstchoice(1) = 3 or 6-2+1=3)
@@ -1055,9 +1085,15 @@ void MainFrame::proj23Manual()
 			else if (correctDoor == 3 && firstChoice == 3)
 				removedDoor = (rand() % 2) + 1;				//randomly picks 1 or 2
 
-			std::cout << "First choice: " << firstChoice << '\n';
-			std::cout << "Door " << removedDoor << " is not the correct door and has been removed." << '\n' << '\n';
-			wxString swapChoice{ getTextInput(wxString { "Swap to the other door or Keep yours?" },wxString { ""}, wxString {""}) };
+			//std::cout << "First choice: " << firstChoice << '\n';
+			//std::cout << "Door " << removedDoor << " is not the correct door and has been removed." << '\n' << '\n';
+			//wxString removedDoorStr = wxString::Format("Door %d", removedDoor);
+			//wxString swapChoice{ getTextInput(wxString { "Swap to the other door or Keep yours?" },wxString { ""}, wxString {""}) };
+			wxArrayString manualSwapKeepChoices;
+			manualSwapKeepChoices.Add(wxT("Swap"));
+			manualSwapKeepChoices.Add(wxT("Keep"));
+			//manualChoices.Add(wxT("3"));
+			wxString swapChoice{ singleChoiceInput(wxString{ "Swap to the other door or Keep yours?" },wxString { "" }, manualSwapKeepChoices) };
 
 			if ((firstChoice == 1 && removedDoor == 2) || (firstChoice == 2 && removedDoor == 1))//swaps for door 3 if 1 or 2 were removed
 				secondChoice = 3;
@@ -1072,22 +1108,21 @@ void MainFrame::proj23Manual()
 			if (secondChoice == correctDoor)//counts wins for swapping
 				++swapWinCounter;
 
-			std::cout << "The first choice was: " << firstChoice << '\n'
+			std::cout << "You chose door: " << firstChoice << '\n'
 				<< "The door removed was: " << removedDoor << '\n';
 
-			if (swapChoice == "swap" || swapChoice == "s")
+			if (swapChoice == "Swap")
 			{
 				std::cout << "You chose to swap your door." << '\n';
 			}
-			else if (swapChoice == "keep" || swapChoice == "k")
+			else if (swapChoice == "Keep")
 			{
 				std::cout << "You chose to keep your door." << '\n';
 			}
 
 			std::cout << "The correct door was: " << correctDoor << '\n';
 
-			if ((firstChoice == correctDoor && swapChoice == "keep") || (firstChoice == correctDoor && swapChoice == "k")
-				|| (firstChoice != correctDoor && swapChoice == "swap") || (firstChoice != correctDoor && swapChoice == "s"))
+			if ((firstChoice == correctDoor && swapChoice == "Keep") || (firstChoice != correctDoor && swapChoice == "Swap"))
 			{
 				++winsForPlayer;
 				std::cout << "Congratulations, you win!" << '\n' << '\n';
@@ -1108,13 +1143,19 @@ void MainFrame::proj23Manual()
 			continueManual = wxMessageBox("Run again?", " ", wxYES_NO, this);
 		}
 		else
-			goto start;
+		{
+			continueManual = wxNO;
+		}
 	}
 }
 void MainFrame::proj23()
 {
 	wxStreamToTextRedirector redirect(gui_out);
-	wxString str{ getTextInput(wxString { "Automatic or manual Monty Hall program?" },wxString { "" }, wxString { "" }) };
+	wxArrayString proj23Choices;
+	proj23Choices.Add(wxT("Automatic"));
+	proj23Choices.Add(wxT("Manual"));
+		wxString choice23{ singleChoiceInput(wxString{ "Automatic or manual Monty Hall program?" },wxString { "" }, proj23Choices) };
+	/*wxString str{getTextInput(wxString {"Automatic or manual Monty Hall program?"},wxString {""}, wxString {""})};
 	int choice23{};
 	if (str == "automatic" || str == "auto" || str == "a")
 	{
@@ -1126,16 +1167,20 @@ void MainFrame::proj23()
 	}
 	switch (choice23)
 	{
-	case 1:
+	case 0:
 		proj23Auto();
 		break;
-	case 2:
+	case 1:
 		proj23Manual();
 		break;
 	default: std::cout << "Error, invalid choice. Please choose again." << '\n' << '\n';
 		proj23();
 		break;
-	}
+	}*/
+	if (choice23 == "Automatic")
+		proj23Auto();
+	else if (choice23 == "Manual")
+		proj23Manual();
 }
 double proj24CalculateHeight(double initialHeight, int seconds)
 {

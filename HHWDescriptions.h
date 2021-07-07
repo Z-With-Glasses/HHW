@@ -95,7 +95,7 @@ static wxString proj22Info()
 	return str;
 }static wxString proj23Info()
 {
-	wxString str("This project demonstrates the Monty Hall problem, where one is asked to choose a door from three doors. Only one choice is correct, the other two are incorrect. After choosing a door, one incorrect door is removed. They are then asked if they would like to keep their choice or switch doors. Despite seeming like a 50/50 chance, statistically if they switch their chances are 2/3 while if they stay it's 1/3, this project demonstrates that.");
+	wxString str("This project demonstrates the Monty Hall problem, the user is asked to choose a door from three doors.\n\nOnly one choice is correct, the other two are incorrect.\n\nAfter choosing a door, one incorrect door is removed. They are then asked if they would like to keep their door or switch to the remaining door.\n\nDespite seeming like a 50/50 chance, statistically if they switch their chances are 2/3 while if they stay it's 1/3, this project demonstrates that.");
 	return str;
 }static wxString proj24Info()
 {
