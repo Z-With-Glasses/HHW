@@ -52,7 +52,9 @@ public:
 	//wxMessageDialog* gui_about;
 	wxGauge* gui_gauge;
 	
-	void displayAndRun(wxCommandEvent& event);
+	void displayAndRunCommandEventHandler(wxCommandEvent& event);
+	void displayAndRunKeyEventHandler(wxKeyEvent& event);
+	void displayAndRun(int evntType);
 	long getNumInput(wxString message, wxString prompt, wxString caption);
 	wxString getTextInput(wxString message, wxString prompt, wxString caption);
 	double getDblInput(wxString message, wxString prompt, wxString caption);
@@ -105,14 +107,15 @@ private:
 		ID_enter = 31
 	};
 };
-//BEGIN_EVENT_TABLE(MainFrame, wxFrame)
-//EVT_BUTTON(ID_button_display, MainFrame::displayAndRun)
-//EVT_BUTTON(ID_button_run, MainFrame::displayAndRun)
-//EVT_BUTTON(ID_button_about, MainFrame::onAbout)
-//EVT_LISTBOX_DCLICK(ID_dbl_click, MainFrame::displayAndRun)
-//EVT_LISTBOX(ID_sgl_click, MainFrame::displayAndRun)
-//EVT_COMMAND_ENTER(ID_enter, MainFrame::displayAndRun)
-//END_EVENT_TABLE()
+/*
+BEGIN_EVENT_TABLE(MainFrame, wxFrame)
+EVT_BUTTON(ID_button_display, MainFrame::displayAndRun)
+EVT_BUTTON(ID_button_run, MainFrame::displayAndRun)
+EVT_BUTTON(ID_button_about, MainFrame::onAbout)
+EVT_LISTBOX_DCLICK(ID_dbl_click, MainFrame::displayAndRun)
+EVT_LISTBOX(ID_sgl_click, MainFrame::displayAndRun)
+EVT_COMMAND_ENTER(ID_enter, MainFrame::displayAndRun)
+END_EVENT_TABLE()*/
 wxIMPLEMENT_APP(MyApp);
 bool MyApp::OnInit()
 {
@@ -190,9 +193,9 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
 	//button_display->Bind(wxEVT_BUTTON, &MainFrame::displayAndRun, this);
 	//button_run->Bind(wxEVT_BUTTON, &MainFrame::displayAndRun, this);
 	//button_about->Bind(wxEVT_BUTTON, &MainFrame::onAbout, this);
-	gui_choice->Bind(wxEVT_LISTBOX, &MainFrame::displayAndRun, this);
-	gui_choice->Bind(wxEVT_LISTBOX_DCLICK, &MainFrame::displayAndRun, this);
-	gui_choice->Bind(wxEVT_COMMAND_ENTER, &MainFrame::displayAndRun, this); //wxKeyEvent handler needed for this
+	gui_choice->Bind(wxEVT_LISTBOX, &MainFrame::displayAndRunCommandEventHandler, this);
+	gui_choice->Bind(wxEVT_LISTBOX_DCLICK, &MainFrame::displayAndRunCommandEventHandler, this);
+	gui_choice->Bind(wxEVT_KEY_DOWN, &MainFrame::displayAndRunKeyEventHandler, this); //wxKeyEvent handler needed for this
 
 	gui_disp->SetBackgroundColour(*wxBLACK);
 	gui_disp->SetForegroundColour(*wxGREEN);
@@ -235,11 +238,37 @@ wxString MainFrame::singleChoiceInput(wxString message, wxString caption, wxArra
 	wxString input{ wxGetSingleChoice(wxString(message), wxString(caption), wxArrayString (aChoices), gui_disp, wxCoord(850), wxCoord(350), false)};
 	return input;
 }
-void MainFrame::displayAndRun(wxCommandEvent& event)
+void MainFrame::displayAndRunCommandEventHandler(wxCommandEvent& event)
+{
+	int evntType = event.GetEventType();
+	MainFrame::displayAndRun(evntType);
+}
+void MainFrame::displayAndRunKeyEventHandler(wxKeyEvent& event)
+{
+	int keyvntType{};
+	if (event.GetKeyCode() == WXK_RETURN || event.GetKeyCode() == WXK_NUMPAD_ENTER)
+	keyvntType = 1;
+
+	//make arrow keys navigate listbox since this function handles all keypresses and overwrites the default behaviour
+	int selection = gui_choice->GetSelection();
+	if (event.GetKeyCode() == WXK_DOWN)
+	{
+		gui_choice->SetSelection(++selection);
+	}
+	if (selection > 0)//stops working if it hits the top so the selection can't become invalid
+	{
+		if (event.GetKeyCode() == WXK_UP)
+		{
+			gui_choice->SetSelection(--selection);
+		}
+	}
+
+	MainFrame::displayAndRun(keyvntType);
+}
+void MainFrame::displayAndRun(int evntType)
 {
 	//int andRun{ event.GetId() };
 	int choice{ gui_choice->GetSelection() };
-	int evntType = event.GetEventType();
 		gui_out->Clear();
 	switch (choice)
 	{
@@ -247,7 +276,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj1String());
 		SetStatusText("Project 1: Integer Doubling");
 		gui_info->SetLabel(proj1Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == wxEVT_COMMAND_ENTER)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj1();
 			break;
@@ -257,7 +286,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj2String());
 		SetStatusText("Project 2: Integer Doubling w/ Parameter");
 		gui_info->SetLabel(proj2Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj2();
 			break;
@@ -267,7 +296,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj3String());
 		SetStatusText("Project 3: Forward Declaration Demonstration-Integer Addition");
 		gui_info->SetLabel(proj3Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj3();
 			break;
@@ -277,7 +306,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj4String());
 		SetStatusText("Project 4: Data Types And Sizes");
 		gui_info->SetLabel(proj4Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj4();
 			break;
@@ -287,7 +316,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj5String());
 		SetStatusText("Project 5: Prime Number Checker");
 		gui_info->SetLabel(proj5Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj5();
 			break;
@@ -297,7 +326,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj6String());
 		SetStatusText("Project 6: Character Usage Demonstration");
 		gui_info->SetLabel(proj6Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj6();
 			break;
@@ -307,7 +336,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj7String());
 		SetStatusText("Project 7: Constants Demonstration-Radius To Circumfrence");
 		gui_info->SetLabel(proj7Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj7();
 			break;
@@ -317,7 +346,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj8String());
 		SetStatusText("Project 8: Even Or Odd");
 		gui_info->SetLabel(proj8Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj8();
 			break;
@@ -327,7 +356,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj9String());
 		SetStatusText("Project 9: Low And High Integer Swap");
 		gui_info->SetLabel(proj9Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj9();
 			break;
@@ -337,7 +366,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj10String());
 		SetStatusText("Project 10: Positive Number Swap");
 		gui_info->SetLabel(proj10Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj10();
 			break;
@@ -347,7 +376,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj11String());
 		SetStatusText("Project 11: Years Lived Per Character In Name");
 		gui_info->SetLabel(proj11Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj11();
 			break;
@@ -357,7 +386,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj12String());
 		SetStatusText("Project 12: Character Replacement In Strings");
 		gui_info->SetLabel(proj12Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj12();
 			break;
@@ -367,7 +396,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj13String());
 		SetStatusText("Project 13: Enumerators And Enumerated Classes");
 		gui_info->SetLabel(proj13Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj13();
 			break;
@@ -377,7 +406,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj14String());
 		SetStatusText("Project 14: Struct Demonstration-Ad Revenue");
 		gui_info->SetLabel(proj14Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj14();
 			break;
@@ -387,7 +416,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj15String());
 		SetStatusText("Project 15: Struct Demonstration-Fractional Multiplication");
 		gui_info->SetLabel(proj15Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj15();
 			break;
@@ -397,7 +426,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj16String());
 		SetStatusText("Project 16: Struct Demonstration-RPG");
 		gui_info->SetLabel(proj16Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj16();
 			break;
@@ -407,7 +436,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj17String());
 		SetStatusText("Project 17: Integer Addition");
 		gui_info->SetLabel(proj17Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj17();
 			break;
@@ -417,7 +446,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj18String());
 		SetStatusText("Project 18: Floating Point Math With Error Catch");
 		gui_info->SetLabel(proj18Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj18();
 			break;
@@ -427,7 +456,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj19String());
 		SetStatusText("Project 19: Ball Drop From Tower #1");
 		gui_info->SetLabel(proj19Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj19();
 			break;
@@ -437,7 +466,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj20String());
 		SetStatusText("Project 20: Integer Addition With Switch Statement");
 		gui_info->SetLabel(proj20Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj20();
 			break;
@@ -447,7 +476,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj21String());
 		SetStatusText("Project 21: Loops And Nested Loops");
 		gui_info->SetLabel(proj21Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj21();
 			break;
@@ -457,7 +486,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj22String());
 		SetStatusText("Project 22: For Loop Of Evens");
 		gui_info->SetLabel(proj22Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj22();
 			break;
@@ -467,7 +496,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj23String());
 		SetStatusText("Project 23: The Monty Hall Problem");
 		gui_info->SetLabel(proj23Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj23();
 			break;
@@ -477,7 +506,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj24String());
 		SetStatusText("Project 24: Ball Drop From Tower #2: ");
 		gui_info->SetLabel(proj24Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj24();
 			break;
@@ -487,7 +516,7 @@ void MainFrame::displayAndRun(wxCommandEvent& event)
 		gui_disp->SetLabel(proj25String());
 		SetStatusText("Project 25: Prime Number Check With Assert");
 		gui_info->SetLabel(proj25Info());
-		if (evntType == wxEVT_LISTBOX_DCLICK)
+		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
 			proj25();
 			break;
