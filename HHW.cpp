@@ -31,6 +31,7 @@
 #include <wx/msgdlg.h>
 #include <wx/numdlg.h> 
 #include <wx/panel.h>
+#include <wx/progdlg.h>
 #include <wx/splitter.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
@@ -49,8 +50,9 @@ public:
 	wxTextCtrl* gui_disp;
 	wxTextCtrl* gui_info;
 	wxSplitterWindow* gui_split;
-	//wxMessageDialog* gui_about;
+	wxMessageDialog* gui_error;
 	wxGauge* gui_gauge;
+	wxProgressDialog* gui_gauge_dialog;
 	
 	void displayAndRunCommandEventHandler(wxCommandEvent& event);
 	void displayAndRunKeyEventHandler(wxKeyEvent& event);
@@ -161,16 +163,14 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
 
 	//wxPanel* panel_out = new wxPanel(this, ID_panel_out, wxDefaultPosition, wxSize(200, 200));
 	gui_split = new wxSplitterWindow(this, ID_splitter, wxDefaultPosition, wxSize(600,400), wxSP_3D | wxSP_LIVE_UPDATE);
-	gui_out = new wxTextCtrl(gui_split, ID_out, wxString("The output of the selcted project will be displayed here as the project runs."), wxDefaultPosition, wxSize(600, 200), wxTE_READONLY | wxTE_MULTILINE | wxTE_DONTWRAP | wxTE_RICH | wxBORDER_THEME);
+	gui_out = new wxTextCtrl(gui_split, ID_out, wxString("Double click a project or select it with the arrow keys and press enter to run it here."), wxDefaultPosition, wxSize(600, 200), wxTE_READONLY | wxTE_MULTILINE | wxTE_DONTWRAP | wxTE_RICH | wxBORDER_THEME);
 	//wxPanel* panel_disp = new wxPanel(this, ID_panel_disp, wxDefaultPosition, wxSize(600, 200), wxBORDER_THEME);
-	gui_disp = new wxTextCtrl(gui_split, ID_out, wxString("The code for the selected project will be displayed here."), wxDefaultPosition, wxSize(600, 200), wxTE_READONLY | wxTE_MULTILINE | wxTE_DONTWRAP | wxTE_RICH | wxBORDER_THEME);
+	gui_disp = new wxTextCtrl(gui_split, ID_out, wxString("Click on a project to display the code for it here."), wxDefaultPosition, wxSize(600, 200), wxTE_READONLY | wxTE_MULTILINE | wxTE_DONTWRAP | wxTE_RICH | wxBORDER_THEME);
 	wxPanel* panel_choice = new wxPanel(this, ID_panel_choice, wxDefaultPosition, wxSize(315, 600), wxBORDER_RAISED);
 	gui_choice = new wxListBox(panel_choice, ID_choice, wxDefaultPosition, wxSize(315, 600), 25, choices, wxLB_SINGLE | wxVSCROLL | wxWANTS_CHARS);
 	//wxPanel* panel_controls = new wxPanel(this, ID_panel_controls, wxDefaultPosition, wxSize(300, 300), wxBORDER_RAISED);
-	gui_info = new wxTextCtrl(this, ID_info, wxString("Select a project to display the code or double click to run the project! \n\nThis program was created by Zack Green on 2021/07/05 using C++ and wxWidgets.\n\n           github.com/Z-With-Glasses"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_MULTILINE | wxTE_RICH | wxBORDER_THEME);
+	gui_info = new wxTextCtrl(this, ID_info, wxString("Select a project to display the code or double click to run the project. \n\nThis program was created by Zack Green on 2021/07/05 using C++ and wxWidgets.\n\n           github.com/Z-With-Glasses"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_MULTILINE | wxTE_RICH | wxBORDER_THEME);
 	gui_gauge = new wxGauge(this, ID_gauge, INT_MAX, wxDefaultPosition, wxSize(315, 15), wxGA_HORIZONTAL);//affects performance negatively
-	//gui_about = new wxMessageDialog(this, wxString ("Select a project to display the code or double click to run the project! \nThis program was created by Zack Green on 2021/07/05 using C++ and wxWidgets.\n                            github.com/Z-With-Glasses"), wxString(""), wxOK | wxSTAY_ON_TOP, wxDefaultPosition);
-
 	wxBoxSizer* sizer_main = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizer_left = new wxBoxSizer(wxVERTICAL);
 	gui_split->SplitHorizontally(gui_disp, gui_out);
@@ -207,7 +207,7 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
 	gui_info->SetForegroundColour(*wxGREEN);
 	
     CreateStatusBar();
-    SetStatusText("Select a project to display the code or double click to run the project!");
+    SetStatusText("Select a project to display the code or double click to run the project.");
 	this->SetSize(wxSize(1200, 1000));
 	this->CenterOnScreen();
 }
@@ -269,7 +269,12 @@ void MainFrame::displayAndRun(int evntType)
 {
 	//int andRun{ event.GetId() };
 	int choice{ gui_choice->GetSelection() };
-		gui_out->Clear();
+	gui_out->Clear();
+		if (evntType != wxEVT_LISTBOX_DCLICK && evntType != 1)
+		{
+			gui_out->AppendText("Double click a project or select it with the arrow keys and press enter to run it here.");
+		}
+
 	switch (choice)
 	{
 	case 0:
@@ -544,7 +549,7 @@ int proj2DoubleNumber(int x)			//takes one integer as a parameter
 void MainFrame::proj2()
 {
 	wxStreamToTextRedirector redirect(gui_out);
-	int num{ getIntInput(wxString { "Enter an integer." },wxString { "" }, wxString { "" }) };													//assigns the value of function 'getNumInput' to the integer variable 'num' by calling it
+	int num{ getIntInput(wxString { "Enter an integer." },wxString { "" }, wxString { "" }) };	//assigns the value of function 'getNumInput' to the integer variable 'num' by calling it
 	std::cout << "Double that integer is: " << proj2DoubleNumber(num) << '\n';	//calls function 'doubleNumber' to double the value of the variable 'num' then prints to console the result
 	num = proj2DoubleNumber(num);
 }
@@ -562,15 +567,15 @@ void MainFrame::proj4()
 	wxStreamToTextRedirector redirect(gui_out);
 	std::cout << "bool:\t\t" << sizeof(bool) << " bytes\n";
 	std::cout << "char:\t\t" << sizeof(char) << " bytes\n";
-	std::cout << "wchar_t:\t\t" << sizeof(wchar_t) << " bytes\n";
-	std::cout << "char16_t:\t\t" << sizeof(char16_t) << " bytes\n"; // C++11 only
-	std::cout << "char32_t:\t\t" << sizeof(char32_t) << " bytes\n"; // C++11 only
+	std::cout << "wchar_t:\t" << sizeof(wchar_t) << " bytes\n";
+	std::cout << "char16_t:\t" << sizeof(char16_t) << " bytes\n"; // C++11 only
+	std::cout << "char32_t:\t" << sizeof(char32_t) << " bytes\n"; // C++11 only
 	std::cout << "short:\t\t" << sizeof(short) << " bytes\n";
 	std::cout << "int:\t\t" << sizeof(int) << " bytes\n";
 	std::cout << "long:\t\t" << sizeof(long) << " bytes\n";
 	std::cout << "long long:\t" << sizeof(long long) << " bytes\n"; // C++11 only
 	std::cout << "float:\t\t" << sizeof(float) << " bytes\n";
-	std::cout << "double:\t\t" << sizeof(double) << " bytes\n";
+	std::cout << "double:\t" << sizeof(double) << " bytes\n";
 	std::cout << "long double:\t" << sizeof(long double) << " bytes\n";
 }
 //begin project 5
@@ -1003,17 +1008,19 @@ void MainFrame::proj23Auto()
 	double keepWinCounter{};
 	double swapWinCounter{};
 	std::cout << std::setprecision(0) << std::fixed
-				<< "Up to 100 iterations can be actively watched, or up to 1,000,000,000 iterations can be done behind the scenes." << '\n' 
-				<< "About 25s run time for 100,000,000 iterations on creator's machine." << '\n' 
-				<< "About 238s run time for 1,000,000,000 iterations on creator's machine." << '\n' << '\n';
+		<< "Up to 100 iterations can be actively watched, or up to 1,000,000,000 iterations can be done behind the scenes." << '\n'
+		<< "About 25s run time for 100,000,000 iterations on creator's machine." << '\n'
+		<< "About 238s run time for 1,000,000,000 iterations on creator's machine." << '\n' << '\n';
 
-	double iterations { getDblInput(wxString { "Enter amount of iterations." },wxString { "" }, wxString { "" }) };
-	if (iterations != 0)
+	double iterations{ getDblInput(wxString { "Enter amount of iterations." },wxString { "" }, wxString { "" }) };
+	if (iterations > 0 && iterations <= 1000000000)
 	{
 		wxBusyCursor wait;
 		auto start = std::chrono::high_resolution_clock::now();
 		//std::cout << std::setprecision(0) << std::fixed << "Running " << iterations << " times..." << '\n' << '\n';
-		gui_gauge->SetRange(iterations);
+		gui_gauge_dialog = new wxProgressDialog(wxString("Processing..."), wxString("Processed iterations: 0"), iterations, gui_out, wxPD_APP_MODAL | wxPD_REMAINING_TIME | wxPD_CAN_ABORT);
+		gui_gauge_dialog->Move(wxCoord(850), wxCoord(350));
+		//gui_gauge->SetRange(iterations);
 		for (int count = 0; count < iterations; count++) //user chooses how many times to run this loop
 		{
 			correctDoor = (rand() % 3) + 1; //randomly picks the correct door
@@ -1040,7 +1047,7 @@ void MainFrame::proj23Auto()
 			if (secondChoice == correctDoor)//counts wins for swapping
 				++swapWinCounter;
 
-			if (iterations <= 100000000)
+			/*if (iterations <= 100000000)
 			{
 				if (count % 100000 == 0)
 				{
@@ -1054,8 +1061,12 @@ void MainFrame::proj23Auto()
 				{
 					gui_gauge->Pulse();
 				}
+			}*/
+			if (count % 100000 == 0)
+			{
+				wxString updater = wxString::Format(wxT("Processed iterations: %d"), count);
+				gui_gauge_dialog->Update(count, wxString(updater));
 			}
-
 
 			if (iterations <= 100)
 			{
@@ -1064,21 +1075,38 @@ void MainFrame::proj23Auto()
 					<< "The door picked if you chose to swap was: " << secondChoice << '\n'
 					<< "The correct door was: " << correctDoor << '\n' << '\n';
 			}
+			if (gui_gauge_dialog->WasCancelled())
+			{
+				gui_gauge_dialog->Destroy();
+				gui_out->Clear();
+				break;
+			}
 		}
-		gui_gauge->SetValue(iterations);
-		std::cout << iterations << " iterations ran." << '\n' << "Wins for Keep: " << std::setprecision(0) << keepWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((keepWinCounter / iterations) * 100) << '%' << '\n'
-			<< "Wins for Swap: " << std::setprecision(0) << swapWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((swapWinCounter / iterations) * 100) << '%' << '\n' << '\n';
-
-		auto finish = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double> elapsed = finish - start;
-		std::cout << "Run time: " << elapsed.count() << 's' << std::scientific;
-		//wxString continueAuto{ getTextInput(wxString { "Run again?" },wxString { "" }, wxString { "" }) };
-		int continueAuto = wxMessageBox("Run again?", " ", wxYES_NO, this);
-		if (continueAuto == wxYES)
+		//gui_gauge->SetValue(iterations);
+		gui_gauge_dialog->Update(iterations);
+		if (gui_gauge_dialog->WasCancelled() == false)
 		{
-			gui_out->Clear();
-			proj23Auto();
+			std::cout << iterations << " iterations ran." << '\n' << "Wins for Keep: " << std::setprecision(0) << keepWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((keepWinCounter / iterations) * 100) << '%' << '\n'
+				<< "Wins for Swap: " << std::setprecision(0) << swapWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((swapWinCounter / iterations) * 100) << '%' << '\n' << '\n';
+
+			auto finish = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<double> elapsed = finish - start;
+			std::cout << "Run time: " << elapsed.count() << 's' << std::scientific;
+			//wxString continueAuto{ getTextInput(wxString { "Run again?" },wxString { "" }, wxString { "" }) };
+			int continueAuto = wxMessageBox("Run again?", " ", wxYES_NO, this);
+			if (continueAuto == wxYES)
+			{
+				gui_out->Clear();
+				proj23Auto();
+			}
 		}
+	}
+	else if (iterations != 0)
+	{
+		gui_error = new wxMessageDialog(this, wxString("Valid range is 1-1,000,000,000!"), wxString("Error!"), wxOK | wxSTAY_ON_TOP, wxDefaultPosition);
+		gui_error->ShowModal();
+		gui_out->Clear();
+		proj23Auto();
 	}
 }
 void MainFrame::proj23Manual()
