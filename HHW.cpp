@@ -908,18 +908,41 @@ void proj18CalculateAndPrint(double inputA, char charInput, double inputB)
 }
 void MainFrame::proj18()
 {
+	wxArrayString operatorChoices;
+	operatorChoices.Add(wxT("+"));
+	operatorChoices.Add(wxT("-"));
+	operatorChoices.Add(wxT("*"));
+	operatorChoices.Add(wxT("/"));
+
 	wxStreamToTextRedirector redirect(gui_out);
-	double a {getDblInput(wxString { "Enter a floating point number. E.g. 10.32" },wxString { "" }, wxString { "" }, true) };
-	double b {getDblInput(wxString { "Enter another floating point number." },wxString { "" }, wxString { "" }, true) };
-	wxString c{ getTextInput(wxString { "Enter one of the following: +, -, *, or /" },wxString { "Operator:" }, wxString { "" }) };
-	if (c == '+')
-		std::cout << a << c << b << '=' << a + b << '\n';
-	else if (c == '-')
-		std::cout << a << c << b << '=' << a - b << '\n';
-	else if (c == '*')
-		std::cout << a << c << b << '=' << a * b << '\n';
-	else if (c == '/')
-		std::cout << a << c << b << '=' << a / b << '\n';
+	double a{ getDblInput(wxString { "Enter an integer." },wxString { "" }, wxString { "" }, true) };
+	wxString operatorChoiceStr{ singleChoiceInput(wxString{ "Add, subtract, multiply, or divide?" },wxString { "" }, operatorChoices) };
+	wxChar c = operatorChoiceStr[0];
+	double b{ getDblInput(wxString { "Enter another integer." },wxString { "" }, wxString { "" }, true) };
+	if ((a + b) != 0)
+	{
+		{
+			switch (c)
+			{
+			case ('+'):
+				std::cout << std::fixed << std::setprecision(10) << a << " + " << b << " = " << (a + b) << '\n';
+				break;
+			case  ('-'):
+				std::cout << std::fixed << std::setprecision(10) << a << " - " << b << " = " << (a - b) << '\n';
+				break;
+			case  ('*'):
+				std::cout << std::fixed << std::setprecision(10) << a << " * " << b << " = " << (a * b) << '\n';
+				break;
+			case  ('/'):
+				std::cout << std::fixed << std::setprecision(10) << a << " / " << b << " = " << (a / b) << '\n';
+				break;
+			default:
+			{
+				break;
+			}
+			}
+		}
+	}
 }
 double proj19CalculateBallHeight(double towerHeight, int secondsFallen)
 {
@@ -966,10 +989,11 @@ void MainFrame::proj20()
 	operatorChoices.Add(wxT("-"));
 	operatorChoices.Add(wxT("*"));
 	operatorChoices.Add(wxT("/"));
+	operatorChoices.Add(wxT("%"));
 
 	wxStreamToTextRedirector redirect(gui_out);
 	int a{ getIntInput(wxString { "Enter an integer." },wxString { "" }, wxString { "" }) };
-	wxString operatorChoiceStr{ singleChoiceInput(wxString{ "Add, subtract, multiply or divide?" },wxString { "" }, operatorChoices) };
+	wxString operatorChoiceStr{ singleChoiceInput(wxString{ "Add, subtract, multiply, divide or modulus division?" },wxString { "" }, operatorChoices) };
 	wxChar c = operatorChoiceStr[0];
 	int b{ getIntInput(wxString { "Enter another integer." },wxString { "" }, wxString { "" }) };
 	if ((a + b) != 0)
@@ -978,19 +1002,19 @@ void MainFrame::proj20()
 			switch (c)
 			{
 			case ('+'):
-				std::cout << a << " + " << b << " = " << (a + b) << '\n';
+				std::cout << std::fixed << std::setprecision(10) << a << " + " << b << " = " << (a + b) << '\n';
 				break;
 			case  ('-'):
-				std::cout << a << " - " << b << " = " << (a - b) << '\n';
+				std::cout << std::fixed << std::setprecision(10) << a << " - " << b << " = " << (a - b) << '\n';
 				break;
 			case  ('*'):
-				std::cout << a << " * " << b << " = " << (a * b) << '\n';
+				std::cout << std::fixed << std::setprecision(10) << a << " * " << b << " = " << (a * b) << '\n';
 				break;
 			case  ('/'):
-				std::cout << a << " / " << b << " = " << (a / b) << '\n';
+				std::cout << std::fixed << std::setprecision(10) << a << " / " << b << " = " << (a / b) << '\n';
 				break;
 			case  ('%'):
-				std::cout << a << " % " << b << " = " << (a % b) << '\n';
+				std::cout << std::fixed << std::setprecision(10) << a << " % " << b << " = " << (a % b) << '\n';
 				break;
 			default:
 			{
@@ -1104,8 +1128,7 @@ void MainFrame::proj23Auto()
 	int secondChoice{};
 	double keepWinCounter{};
 	double swapWinCounter{};
-	std::cout << std::setprecision(0) << std::fixed
-		<< "Up to 100 iterations can be actively watched, or up to 1,000,000,000 iterations can be done behind the scenes." << '\n'
+	std::cout << "Up to 100 iterations can be actively watched, or up to 1,000,000,000 iterations can be done behind the scenes." << '\n'
 		<< "About 25s run time for 100,000,000 iterations on creator's machine." << '\n'
 		<< "About 238s run time for 1,000,000,000 iterations on creator's machine." << '\n' << '\n';
 
@@ -1165,11 +1188,11 @@ void MainFrame::proj23Auto()
 		gui_gauge_dialog->Update(iterations);
 		if (gui_gauge_dialog->WasCancelled() == false)
 		{
-			std::cout << iterations << " iterations ran." << '\n' << "Wins for Keep: " << std::setprecision(0) << keepWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((keepWinCounter / iterations) * 100) << '%' << '\n'
+			std::cout << std::fixed << iterations << " iterations ran." << '\n' << "Wins for Keep: " << std::setprecision(0) << keepWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((keepWinCounter / iterations) * 100) << '%' << '\n'
 				<< "Wins for Swap: " << std::setprecision(0) << swapWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((swapWinCounter / iterations) * 100) << '%' << '\n' << '\n';
 
 			std::chrono::duration<double> elapsed = finish - start;
-			std::cout << "Run time: " << elapsed.count() << 's' << std::scientific;
+			std::cout << "Run time: " << elapsed.count() << 's';
 			int continueAuto = wxMessageBox("Run again?", " ", wxYES_NO, this);
 			if (continueAuto == wxYES)
 			{
