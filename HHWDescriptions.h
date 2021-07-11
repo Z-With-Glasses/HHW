@@ -61,7 +61,7 @@ static wxString proj12Info()
 	return str;
 }static wxString proj15Info()
 {
-	wxString str("This project multiples two fractions together to produce a decimal. Struct is used in the code.");
+	wxString str("This project multiplies two fractions together to produce a decimal. Struct is used in the code.");
 	return str;
 }static wxString proj16Info()
 {

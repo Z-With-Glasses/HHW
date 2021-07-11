@@ -53,17 +53,18 @@ public:
 	wxMessageDialog* gui_error;
 	wxGauge* gui_gauge;
 	wxProgressDialog* gui_gauge_dialog;
+	wxNumberEntryDialog* getNum;
 	
+	void errorMessage(wxString message, wxWindow* parent);
+	void progressMessage(wxString title, wxString message, int maximum, wxWindow* parent);
 	void displayAndRunCommandEventHandler(wxCommandEvent& event);
 	void displayAndRunKeyEventHandler(wxKeyEvent& event);
 	void displayAndRun(int evntType);
-	long getNumInput(wxString message, wxString prompt, wxString caption);
 	wxString getTextInput(wxString message, wxString prompt, wxString caption);
 	double getDblInput(wxString message, wxString prompt, wxString caption);
 	int getIntInput(wxString message, wxString prompt, wxString caption);
 	wxString singleChoiceInput(wxString message, wxString caption, wxArrayString aChoices);
 	void proj1();
-	void proj2();
 	void proj3();
 	void proj4();
 	void proj5();
@@ -169,7 +170,7 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
 	wxPanel* panel_choice = new wxPanel(this, ID_panel_choice, wxDefaultPosition, wxSize(315, 600), wxBORDER_RAISED);
 	gui_choice = new wxListBox(panel_choice, ID_choice, wxDefaultPosition, wxSize(315, 600), 25, choices, wxLB_SINGLE | wxVSCROLL | wxWANTS_CHARS);
 	//wxPanel* panel_controls = new wxPanel(this, ID_panel_controls, wxDefaultPosition, wxSize(300, 300), wxBORDER_RAISED);
-	gui_info = new wxTextCtrl(this, ID_info, wxString("Select a project to display the code or double click to run the project. \n\nThis program was created by Zack Green on 2021/07/05 using C++ and wxWidgets.\n\n           github.com/Z-With-Glasses"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_MULTILINE | wxTE_RICH | wxBORDER_THEME);
+	gui_info = new wxTextCtrl(this, ID_info, wxString("Select a project to display the code or double click to run the project.\n\nThis program was created by Zack Green on 2021/07/05 using C++ and wxWidgets.\n\n           github.com/Z-With-Glasses"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_MULTILINE | wxTE_RICH | wxBORDER_THEME);
 	gui_gauge = new wxGauge(this, ID_gauge, INT_MAX, wxDefaultPosition, wxSize(315, 15), wxGA_HORIZONTAL);//affects performance negatively
 	wxBoxSizer* sizer_main = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizer_left = new wxBoxSizer(wxVERTICAL);
@@ -211,10 +212,16 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
 	this->SetSize(wxSize(1200, 1000));
 	this->CenterOnScreen();
 }
-long MainFrame::getNumInput(wxString message, wxString prompt, wxString caption)
+void MainFrame::errorMessage(wxString message, wxWindow* parent)
 {
-	long input{ wxGetNumberFromUser(wxString(message), wxString(prompt), wxString(caption), long{}, long {LONG_MIN}, long {LONG_MAX}) };
-	return input;
+	gui_error = new wxMessageDialog(this, wxString(message), wxString("Error!"), wxOK | wxSTAY_ON_TOP, wxDefaultPosition);
+	gui_error->ShowModal();
+}
+void MainFrame::progressMessage(wxString title, wxString message, int maximum, wxWindow* parent)
+{
+	
+	gui_gauge_dialog = new wxProgressDialog(wxString(title), wxString(message), maximum, parent, wxPD_APP_MODAL | wxPD_REMAINING_TIME | wxPD_CAN_ABORT);
+	gui_gauge_dialog->Move(wxCoord(850), wxCoord(350));
 }
 wxString MainFrame::getTextInput(wxString message, wxString prompt, wxString caption)
 {
@@ -223,14 +230,27 @@ wxString MainFrame::getTextInput(wxString message, wxString prompt, wxString cap
 }
 int MainFrame::getIntInput(wxString message, wxString prompt, wxString caption)
 {
-	wxString input{ wxGetTextFromUser(wxString(message), wxString(prompt), wxString(caption), gui_disp, wxCoord(850), wxCoord(350), false) };
-	int value = wxAtoi(input);
-	return value;
+start:
+	getNum = new wxNumberEntryDialog(this, wxString(message), wxString(prompt), wxString(caption), long{ 0 }, long{ LONG_MIN }, long{ LONG_MAX }, wxPoint(850, 350));
+	getNum->ShowModal();
+	int input = getNum->GetValue();
+	if (input == -2147483648)
+	{
+		errorMessage(wxString("Error! Enter an integer."), this);
+		goto start;
+	}
+	return input;
 }
 double MainFrame::getDblInput(wxString message, wxString prompt, wxString caption)
 {
+	start:
 	wxString input{ wxGetTextFromUser(wxString(message), wxString(prompt), wxString(caption), gui_disp, wxCoord(850), wxCoord(350), false) };
 	double value = wxAtof(input);
+	if (wxIsalpha(input.GetChar(0)))
+	{
+		errorMessage(wxString("Error! Enter an double."), this);
+		goto start;
+	}
 	return value;
 }
 wxString MainFrame::singleChoiceInput(wxString message, wxString caption, wxArrayString aChoices)
@@ -293,7 +313,7 @@ void MainFrame::displayAndRun(int evntType)
 		gui_info->SetLabel(proj2Info());
 		if (evntType == wxEVT_LISTBOX_DCLICK || evntType == 1)
 		{
-			proj2();
+			proj1();
 			break;
 		}
 		break;
@@ -535,24 +555,14 @@ void MainFrame::displayAndRun(int evntType)
 		}
 	}
 }
+//--------------------------------------------------|Projects|--------------------------------------------------//
 void MainFrame::proj1()
 {
-
 	wxStreamToTextRedirector redirect(gui_out);
 	int num{ getIntInput(wxString { "Enter an integer." },wxString { "" }, wxString { "" }) };
-	std::cout << "Double that integer is: " << num * 2 << '\n';
+		std::cout << "Double that integer is: " << num * 2 << '\n';
 }
-int proj2DoubleNumber(int x)			//takes one integer as a parameter
-{
-	return x * 2;						//returns double the value of the integer when called, the caller determines the value of the integer
-}
-void MainFrame::proj2()
-{
-	wxStreamToTextRedirector redirect(gui_out);
-	int num{ getIntInput(wxString { "Enter an integer." },wxString { "" }, wxString { "" }) };	//assigns the value of function 'getNumInput' to the integer variable 'num' by calling it
-	std::cout << "Double that integer is: " << proj2DoubleNumber(num) << '\n';	//calls function 'doubleNumber' to double the value of the variable 'num' then prints to console the result
-	num = proj2DoubleNumber(num);
-}
+
 void MainFrame::proj3()
 {
 	wxStreamToTextRedirector redirect(gui_out);
@@ -561,7 +571,7 @@ void MainFrame::proj3()
 
 	std::cout << a << " + " << b << " = " << a + b << '\n';
 }
-//begin project 4
+
 void MainFrame::proj4()
 {
 	wxStreamToTextRedirector redirect(gui_out);
@@ -578,7 +588,7 @@ void MainFrame::proj4()
 	std::cout << "double:\t" << sizeof(double) << " bytes\n";
 	std::cout << "long double:\t" << sizeof(long double) << " bytes\n";
 }
-//begin project 5
+
 void MainFrame::proj5()
 {
 	wxStreamToTextRedirector redirect(gui_out);
@@ -597,8 +607,8 @@ void MainFrame::proj5()
 	if (flag == 0)
 		std::cout << n << " is Prime." << '\n';
 }
-//begin project 6
-void MainFrame::proj6()	//examples of the usages of chars (chapter 4.11)
+
+void MainFrame::proj6()	
 {
 	wxStreamToTextRedirector redirect(gui_out);
 	std::cout << "6f in hex is char '\x6F'\n";
@@ -615,20 +625,17 @@ void MainFrame::proj6()	//examples of the usages of chars (chapter 4.11)
 	char cha2{ '\'' };
 	std::cout << cha2;
 }
-//begin project 7
-void MainFrame::proj7()//Example of how to use the compile time constants(constexpr) in Addition.h
+
+void MainFrame::proj7()
 {
 	wxStreamToTextRedirector redirect(gui_out);
 	int radius{ getIntInput(wxString { "Enter an integer." },wxString { "" }, wxString {""})};
 
-	double circumference{ 2.0 * radius * constants::pi }; // using the namespace 'constants' and the scope resolution operator '::' to place the value of pi, defined in Addition.h
+	double circumference{ 2.0 * radius * constants::pi }; 
 	std::cout << std::fixed << "The circumference is: " << circumference << '\n';
 }
-//begin project 8
-//Write a program that asks the user to input an integer and tells the user whether the number is even or odd. Write a function called isEven() that returns true
-//if an integer passsed to it is even and false otherwise. Use the modulus operator to test whether the integer paramater is even.
 
-bool proj8IsEven(int x)	//This is my answer, it works but a function that only checks even/odd and returns a boolean would be reusable. Make this a habit.
+bool proj8IsEven(int x)	
 {
 	return (x % 2 == 0);
 }
@@ -637,23 +644,25 @@ void MainFrame::proj8()
 {
 	wxStreamToTextRedirector redirect(gui_out);
 	int x = getIntInput(wxString{ "Enter an integer." }, wxString{ "" }, wxString{ "" });
-		if (bool y = proj8IsEven(x) == true)
+		if (x % 2 == 0)
 			std::cout << x << " is even" << '\n';
 		else
 			std::cout << x << " is odd" << '\n';
 }
+
 void proj9Compare(int smaller, int larger)
 {
-	if (smaller > larger)// if the user did it wrong
-	{	//swap the values of smaller and larger
+	if (smaller > larger)
+	{	
 		std::cout << "Swapping the values" << '\n';
 		int temp{ smaller };
 		smaller = larger;
 		larger = temp;
-	}//temp dies here
+	}
 	std::cout << "The smaller value is " << smaller << '\n';
 	std::cout << "The larger value is " << larger << '\n';
-}// smaller and larger die here
+}
+
 void MainFrame::proj9()
 {
 	wxStreamToTextRedirector redirect(gui_out);
@@ -661,7 +670,7 @@ void MainFrame::proj9()
 	int larger{ getIntInput(wxString { "Enter a larger integer." },wxString { "" }, wxString {""})};
 	proj9Compare(smaller, larger);
 }
-//begin project 10
+
 void MainFrame::proj10()
 {
 	wxStreamToTextRedirector redirect(gui_out);
@@ -675,12 +684,7 @@ void MainFrame::proj10()
 	}
 	std::cout << "You entered: " << num << '\n';
 }
-//begin project 11
-//Write a program that asks the user to enter their full name and their age. As output, tell the user how many years they’ve lived for each letter in their name(for simplicity, count spaces as a letter).
-//Sample output :
-//Enter your full name : John Doe
-//Enter your age : 46
-//You've lived 5.75 years for each letter in your name.
+
 void MainFrame::proj11()
 {
 	wxStreamToTextRedirector redirect(gui_out);
@@ -692,6 +696,7 @@ void MainFrame::proj11()
 	double nameAgeDiv = { age / nameLength };
 	std::cout << "You've lived " << nameAgeDiv << " years for each letter in your name.";
 }
+
 void MainFrame::proj12()
 {
 	wxStreamToTextRedirector redirect(gui_out);
@@ -701,27 +706,13 @@ void MainFrame::proj12()
 
 	std::cout << str << '\n'; // I saw a blue car yesterday.
 }
-//begin project 13
+
 enum proj13ItemType
 {
 	ITEMTYPE_SWORD,
 	ITEMTYPE_TORCH,
 	ITEMTYPE_POTION
 };
-
-/*std::string getItemName(proj13ItemType itemType)
-{
-	if (itemType == ITEMTYPE_SWORD)
-		return "Sword";
-	if (itemType == ITEMTYPE_TORCH)
-		return "Torch";
-	if (itemType == ITEMTYPE_POTION)
-		return "Potion";
-
-	// Just in case we add a new item in the future and forget to update this function
-	return "???";
-}
-*/
 void MainFrame::proj13()
 {
 	wxStreamToTextRedirector redirect(gui_out);
@@ -747,6 +738,7 @@ void MainFrame::proj13()
 	else if (colour == Colour::blue)
 		std::cout << "The colour is blue!\n";
 }
+
 void MainFrame::proj14()
 {
 	wxStreamToTextRedirector redirect(gui_out);
@@ -758,6 +750,7 @@ void MainFrame::proj14()
 	std::cout << "Average amount earned per click: $" << earnedPerClick << '\n';
 	std::cout << "Daily earnings: $" << ((percentClicked / 100) * amountViewed * earnedPerClick);
 }
+
 void MainFrame::proj15()
 {
 	wxStreamToTextRedirector redirect(gui_out);
@@ -768,7 +761,6 @@ void MainFrame::proj15()
 	std::cout << numerator1 << '/' << denominator1 << " * " << numerator2 << '/' << denominator2 << " = " <<
 		static_cast<double>(numerator1 * numerator2) / (denominator1 * denominator2) << '\n';
 }
-
 enum class proj16MonsterType
 {
 	dragon,
@@ -1018,8 +1010,7 @@ void MainFrame::proj23Auto()
 		wxBusyCursor wait;
 		auto start = std::chrono::high_resolution_clock::now();
 		//std::cout << std::setprecision(0) << std::fixed << "Running " << iterations << " times..." << '\n' << '\n';
-		gui_gauge_dialog = new wxProgressDialog(wxString("Processing..."), wxString("Processed iterations: 0"), iterations, gui_out, wxPD_APP_MODAL | wxPD_REMAINING_TIME | wxPD_CAN_ABORT);
-		gui_gauge_dialog->Move(wxCoord(850), wxCoord(350));
+		progressMessage(wxString("Processing..."), wxString("Processed iterations: 0"),iterations, gui_out);
 		//gui_gauge->SetRange(iterations);
 		for (int count = 0; count < iterations; count++) //user chooses how many times to run this loop
 		{
@@ -1103,8 +1094,7 @@ void MainFrame::proj23Auto()
 	}
 	else if (iterations != 0)
 	{
-		gui_error = new wxMessageDialog(this, wxString("Valid range is 1-1,000,000,000!"), wxString("Error!"), wxOK | wxSTAY_ON_TOP, wxDefaultPosition);
-		gui_error->ShowModal();
+		errorMessage(wxString("Valid range is 1-1,000,000,000!"), gui_out);
 		gui_out->Clear();
 		proj23Auto();
 	}
