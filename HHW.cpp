@@ -61,7 +61,7 @@ public:
 	void displayAndRunKeyEventHandler(wxKeyEvent& event);
 	void displayAndRun(int evntType);
 	wxString getTextInput(wxString message, wxString prompt, wxString caption);
-	double getDblInput(wxString message, wxString prompt, wxString caption);
+	double getDblInput(wxString message, wxString prompt, wxString caption, bool fractionalCheck);
 	int getIntInput(wxString message, wxString prompt, wxString caption);
 	wxString singleChoiceInput(wxString message, wxString caption, wxArrayString aChoices);
 	void proj1();
@@ -162,41 +162,28 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
 	 _T("Project 25: Prime Check With Asserts")
     };
 
-	//wxPanel* panel_out = new wxPanel(this, ID_panel_out, wxDefaultPosition, wxSize(200, 200));
 	gui_split = new wxSplitterWindow(this, ID_splitter, wxDefaultPosition, wxSize(600,400), wxSP_3D | wxSP_LIVE_UPDATE);
 	gui_out = new wxTextCtrl(gui_split, ID_out, wxString("Double click a project or select it with the arrow keys and press enter to run it here."), wxDefaultPosition, wxSize(600, 200), wxTE_READONLY | wxTE_MULTILINE | wxTE_DONTWRAP | wxTE_RICH | wxBORDER_THEME);
-	//wxPanel* panel_disp = new wxPanel(this, ID_panel_disp, wxDefaultPosition, wxSize(600, 200), wxBORDER_THEME);
 	gui_disp = new wxTextCtrl(gui_split, ID_out, wxString("Click on a project to display the code for it here."), wxDefaultPosition, wxSize(600, 200), wxTE_READONLY | wxTE_MULTILINE | wxTE_DONTWRAP | wxTE_RICH | wxBORDER_THEME);
 	wxPanel* panel_choice = new wxPanel(this, ID_panel_choice, wxDefaultPosition, wxSize(315, 600), wxBORDER_RAISED);
 	gui_choice = new wxListBox(panel_choice, ID_choice, wxDefaultPosition, wxSize(315, 600), 25, choices, wxLB_SINGLE | wxVSCROLL | wxWANTS_CHARS);
-	//wxPanel* panel_controls = new wxPanel(this, ID_panel_controls, wxDefaultPosition, wxSize(300, 300), wxBORDER_RAISED);
 	gui_info = new wxTextCtrl(this, ID_info, wxString("Select a project to display the code or double click to run the project.\n\nThis program was created by Zack Green on 2021/07/05 using C++ and wxWidgets.\n\n           github.com/Z-With-Glasses"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_MULTILINE | wxTE_RICH | wxBORDER_THEME);
-	gui_gauge = new wxGauge(this, ID_gauge, INT_MAX, wxDefaultPosition, wxSize(315, 15), wxGA_HORIZONTAL);//affects performance negatively
+	gui_gauge = new wxGauge(this, ID_gauge, INT_MAX, wxDefaultPosition, wxSize(315, 15), wxGA_HORIZONTAL);
+
 	wxBoxSizer* sizer_main = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizer_left = new wxBoxSizer(wxVERTICAL);
 	gui_split->SplitHorizontally(gui_disp, gui_out);
 	gui_split->SetSashGravity(.5);
-	//wxBoxSizer* sizer_right = new wxBoxSizer(wxVERTICAL);
 	sizer_left->Add(panel_choice, 0);
-	//sizer_left->Add(panel_controls, 0);
 	sizer_left->Add(gui_info, 1, wxEXPAND, 1);
 	sizer_left->Add(gui_gauge);
-	//sizer_right->Add(gui_disp, 1, wxEXPAND, 1);
-	//sizer_right->Add(gui_out, 1, wxEXPAND, 1);
-	//sizer_right->Add(gui_split, 1, wxEXPAND, 1);
 	sizer_main->Add(sizer_left, 0, wxEXPAND);
 	sizer_main->Add(gui_split, 1, wxEXPAND);
 	this->SetSizerAndFit(sizer_main);
 
-	//wxButton* button_display = new wxButton(panel_controls, ID_button_display, _T("Display"), wxPoint(50, 30), wxSize(100, 30));
-	//wxButton* button_run = new wxButton(panel_controls, ID_button_run, _T("Run"), wxPoint(50, 80), wxSize(100, 30));
-	//wxButton* button_about = new wxButton(panel_controls, ID_button_about, _T("Info"), wxPoint(85, 130), wxSize(30, 30));
-	//button_display->Bind(wxEVT_BUTTON, &MainFrame::displayAndRun, this);
-	//button_run->Bind(wxEVT_BUTTON, &MainFrame::displayAndRun, this);
-	//button_about->Bind(wxEVT_BUTTON, &MainFrame::onAbout, this);
 	gui_choice->Bind(wxEVT_LISTBOX, &MainFrame::displayAndRunCommandEventHandler, this);
 	gui_choice->Bind(wxEVT_LISTBOX_DCLICK, &MainFrame::displayAndRunCommandEventHandler, this);
-	gui_choice->Bind(wxEVT_KEY_DOWN, &MainFrame::displayAndRunKeyEventHandler, this); //wxKeyEvent handler needed for this
+	gui_choice->Bind(wxEVT_KEY_DOWN, &MainFrame::displayAndRunKeyEventHandler, this);
 
 	gui_disp->SetBackgroundColour(*wxBLACK);
 	gui_disp->SetForegroundColour(*wxGREEN);
@@ -225,7 +212,22 @@ void MainFrame::progressMessage(wxString title, wxString message, int maximum, w
 }
 wxString MainFrame::getTextInput(wxString message, wxString prompt, wxString caption)
 {
+	start:
 	wxString input{ wxGetTextFromUser(wxString(message), wxString(prompt), wxString(caption), gui_disp, wxCoord(850), wxCoord(350), false) };
+	int inputLength = (input.Length());
+	if (wxIsspace(input.GetChar(0)))
+	{
+		errorMessage(wxString("Don't start with blank space."), this);
+		goto start;
+	}
+	for (int x = 0; x < inputLength; ++x)
+	{
+			if (!wxIsalpha(input.GetChar(x)) && !wxIsspace(input.GetChar(x)))
+			{
+				errorMessage(wxString("Error! Enter a name without numbers or special characters."), this);
+					goto start;
+			}
+	}
 	return input;
 }
 int MainFrame::getIntInput(wxString message, wxString prompt, wxString caption)
@@ -241,14 +243,41 @@ start:
 	}
 	return input;
 }
-double MainFrame::getDblInput(wxString message, wxString prompt, wxString caption)
+double MainFrame::getDblInput(wxString message, wxString prompt, wxString caption, bool fractionalCheck)
 {
 	start:
 	wxString input{ wxGetTextFromUser(wxString(message), wxString(prompt), wxString(caption), gui_disp, wxCoord(850), wxCoord(350), false) };
 	double value = wxAtof(input);
-	if (wxIsalpha(input.GetChar(0)))
+	int inputLength = (input.Length());
+	if (wxIsdigit(input.GetChar(0)))
 	{
-		errorMessage(wxString("Error! Enter an double."), this);
+		for (int x = 0; x < inputLength; ++x)
+		{
+			if (fractionalCheck)//if fractional number allowed
+			{
+				if (!wxIsdigit(input.GetChar(x)) && !wxIspunct(input.GetChar(x)))
+				{
+					errorMessage(wxString("Error! Enter a double."), this);
+						goto start;
+				}
+			}
+			else if (!fractionalCheck)//if fractional number not allowed but double needed for fractional division
+			{
+				if (!wxIsdigit(input.GetChar(x)))
+				{
+					errorMessage(wxString("Error! Enter a whole number."), this);
+					goto start;
+				}
+			}
+		}
+	}
+	else if (input == wxString("")) 
+	{
+		return 0;
+	}
+	else
+	{
+		errorMessage(wxString("Error! Enter a double."), this);
 		goto start;
 	}
 	return value;
@@ -560,6 +589,7 @@ void MainFrame::proj1()
 {
 	wxStreamToTextRedirector redirect(gui_out);
 	int num{ getIntInput(wxString { "Enter an integer." },wxString { "" }, wxString { "" }) };
+	if (num != 0)
 		std::cout << "Double that integer is: " << num * 2 << '\n';
 }
 
@@ -568,7 +598,7 @@ void MainFrame::proj3()
 	wxStreamToTextRedirector redirect(gui_out);
 	int a{ getIntInput(wxString { "Enter an integer." },wxString { "" }, wxString { "" }) };
 	int b{ getIntInput(wxString { "Enter another integer." },wxString { "" }, wxString { "" }) };
-
+	if ((a + b) != 0)
 	std::cout << a << " + " << b << " = " << a + b << '\n';
 }
 
@@ -594,18 +624,28 @@ void MainFrame::proj5()
 	wxStreamToTextRedirector redirect(gui_out);
 	long n, i, m = 0, flag = 0;
 	n = getIntInput(wxString{ "Enter a number." }, wxString{ "Number:" }, wxString{ "" });
-	m = n / 2;
-	for (i = 2; i <= m; i++)
+	if (n > 0)
 	{
-		if (n % i == 0)
+		m = n / 2;
+		for (i = 2; i <= m; i++)
 		{
-			std::cout << n << " is not Prime." << '\n';
-			flag = 1;
-			break;
+			if (n % i == 0)
+			{
+				std::cout << n << " is not Prime." << '\n';
+				flag = 1;
+				break;
+			}
 		}
+		if (flag == 0)
+			std::cout << n << " is Prime." << '\n';
 	}
-	if (flag == 0)
-		std::cout << n << " is Prime." << '\n';
+	else if ( n < 0)
+	{
+		errorMessage(wxString("Enter a positive number."), gui_out);
+		gui_out->Clear();
+		proj5();
+	}
+
 }
 
 void MainFrame::proj6()	
@@ -630,9 +670,17 @@ void MainFrame::proj7()
 {
 	wxStreamToTextRedirector redirect(gui_out);
 	int radius{ getIntInput(wxString { "Enter an integer." },wxString { "" }, wxString {""})};
-
-	double circumference{ 2.0 * radius * constants::pi }; 
-	std::cout << std::fixed << "The circumference is: " << circumference << '\n';
+	if (radius > 0)
+	{
+		double circumference{ 2.0 * radius * constants::pi };
+		std::cout << std::fixed << "The circumference is: " << circumference << '\n';
+	}
+	else if (radius  < 0)
+	{
+		errorMessage(wxString("Enter a positive number."), gui_out);
+		gui_out->Clear();
+		proj7();
+	}
 }
 
 bool proj8IsEven(int x)	
@@ -644,23 +692,29 @@ void MainFrame::proj8()
 {
 	wxStreamToTextRedirector redirect(gui_out);
 	int x = getIntInput(wxString{ "Enter an integer." }, wxString{ "" }, wxString{ "" });
+	if (x != 0)
+	{
 		if (x % 2 == 0)
 			std::cout << x << " is even" << '\n';
 		else
 			std::cout << x << " is odd" << '\n';
+	}
 }
 
 void proj9Compare(int smaller, int larger)
 {
-	if (smaller > larger)
-	{	
-		std::cout << "Swapping the values" << '\n';
-		int temp{ smaller };
-		smaller = larger;
-		larger = temp;
+	if ((smaller + larger) != 0)
+	{
+		if (smaller > larger)
+		{
+			std::cout << "Swapping the values" << '\n';
+			int temp{ smaller };
+			smaller = larger;
+			larger = temp;
+		}
+		std::cout << "The smaller value is " << smaller << '\n';
+		std::cout << "The larger value is " << larger << '\n';
 	}
-	std::cout << "The smaller value is " << smaller << '\n';
-	std::cout << "The larger value is " << larger << '\n';
 }
 
 void MainFrame::proj9()
@@ -675,26 +729,34 @@ void MainFrame::proj10()
 {
 	wxStreamToTextRedirector redirect(gui_out);
 	int num{ getIntInput(wxString { "Enter a positive number." },wxString { "Positive Number:"}, wxString {""})};
-
-	if
-		(num < 0)
+	if (num != 0)
 	{
-		std::cout << "Negative number entered.  Making positive.\n";
-		num = -num;
+		if (num < 0)
+		{
+			std::cout << "Negative number entered.  Making positive.\n";
+			num = -num;
+		}
+		std::cout << "You entered: " << num << '\n';
 	}
-	std::cout << "You entered: " << num << '\n';
 }
 
 void MainFrame::proj11()
 {
 	wxStreamToTextRedirector redirect(gui_out);
 	wxString name{ getTextInput(wxString { "Enter your full name." },wxString { "Name:" }, wxString { "" }) };
-
+	agestart:
 	int age{ getIntInput(wxString { "Enter your age." },wxString { "Age" }, wxString { "" })};
-
-	double nameLength{ static_cast<double>(name.length()) };//name.length returns an unsigned integer, bad to use and we need a double for the division anyway
-	double nameAgeDiv = { age / nameLength };
-	std::cout << "You've lived " << nameAgeDiv << " years for each letter in your name.";
+	if (age > 0)
+	{
+		double nameLength{ static_cast<double>(name.length()) };//name.length returns an unsigned integer, bad to use and we need a double for the division anyway
+		double nameAgeDiv = { age / nameLength };
+		std::cout << "You've lived " << nameAgeDiv << " years for each letter in your name.";
+	}
+	else if (age != 0)
+	{
+		errorMessage(wxString("Enter a valid age."), gui_out);
+		goto agestart;
+	}
 }
 
 void MainFrame::proj12()
@@ -743,23 +805,44 @@ void MainFrame::proj14()
 {
 	wxStreamToTextRedirector redirect(gui_out);
 	int amountViewed{ getIntInput(wxString { "Enter amount of ads viewed." },wxString { "" }, wxString { "" }) };
-	double percentClicked{ getDblInput(wxString { "Enter percentage of ads clicked." },wxString { "" }, wxString { "" }) };
-	double earnedPerClick{ getDblInput(wxString { "Enter amount earned per click." },wxString { "" }, wxString { "" }) };
-	std::cout << "Amount of ads viewed by users: " << amountViewed << '\n';
-	std::cout << "Percentage of ads clicked by users: " << percentClicked << '%' << '\n';
-	std::cout << "Average amount earned per click: $" << earnedPerClick << '\n';
-	std::cout << "Daily earnings: $" << ((percentClicked / 100) * amountViewed * earnedPerClick);
+	if (amountViewed > 0)
+	{
+		double percentClicked{ getDblInput(wxString { "Enter percentage of ads clicked." },wxString { "" }, wxString { "" }, true) };
+		if (percentClicked > 0)
+		{
+			double earnedPerClick{ getDblInput(wxString { "Enter amount earned per click." },wxString { "" }, wxString { "" }, true) };
+			if (earnedPerClick > 0)
+			{
+				std::cout << "Amount of ads viewed by users: " << amountViewed << '\n';
+				std::cout << "Percentage of ads clicked by users: " << percentClicked << '%' << '\n';
+				std::cout << "Average amount earned per click: $" << earnedPerClick << '\n';
+				std::cout << "Daily earnings: $" << ((percentClicked / 100) * amountViewed * earnedPerClick);
+			}
+		}
+	}
 }
 
 void MainFrame::proj15()
 {
 	wxStreamToTextRedirector redirect(gui_out);
-	double numerator1{ getDblInput(wxString { "Enter a value for the numerator." },wxString { "" }, wxString { "" }) };
-	double denominator1{ getDblInput(wxString { "Enter a value for the denominator." },wxString { ""}, wxString { "" }) };;
-	double numerator2{ getDblInput(wxString { "Enter a value for the nuerator." },wxString { "" }, wxString { "" }) };;
-	double denominator2{ getDblInput(wxString { "Enter a value for the denominator." },wxString { "" }, wxString { "" }) };;
-	std::cout << numerator1 << '/' << denominator1 << " * " << numerator2 << '/' << denominator2 << " = " <<
-		static_cast<double>(numerator1 * numerator2) / (denominator1 * denominator2) << '\n';
+	double numerator1{ getDblInput(wxString { "Enter a value for the numerator." },wxString { "" }, wxString { "" }, false) };
+	if (numerator1 > 0)
+	{
+		double denominator1{ getDblInput(wxString { "Enter a value for the denominator." },wxString { ""}, wxString { "" }, false) };
+		if (denominator1 > 0)
+		{
+			double numerator2{ getDblInput(wxString { "Enter a value for the nuerator." },wxString { "" }, wxString { "" }, false) };
+			if (numerator2 > 0)
+			{
+				double denominator2{ getDblInput(wxString { "Enter a value for the denominator." },wxString { "" }, wxString { "" }, false) };
+				if (denominator2 > 0)
+				{
+					std::cout << std::fixed << std::setprecision(2) << numerator1 << '/' << denominator1 << " * " << numerator2 << '/' << denominator2 << " = "
+						<< static_cast<double>(numerator1 * numerator2) / (denominator1 * denominator2) << '\n';
+				}
+			}
+		}
+	}
 }
 enum class proj16MonsterType
 {
@@ -809,6 +892,7 @@ void MainFrame::proj17()
 	wxStreamToTextRedirector redirect(gui_out);
 	int a{ getIntInput(wxString { "Enter an integer." },wxString { "" }, wxString { "" }) };
 	int b{ getIntInput(wxString { "Enter another integer." },wxString { "" }, wxString { "" }) };
+	if ((a + b) != 0)
 	std::cout << "The sum is " << (a + b) << '\n';
 }
 void proj18CalculateAndPrint(double inputA, char charInput, double inputB)
@@ -825,8 +909,8 @@ void proj18CalculateAndPrint(double inputA, char charInput, double inputB)
 void MainFrame::proj18()
 {
 	wxStreamToTextRedirector redirect(gui_out);
-	double a {getDblInput(wxString { "Enter a floating point number. E.g. 10.32" },wxString { "" }, wxString { "" }) };
-	double b {getDblInput(wxString { "Enter another floating point number." },wxString { "" }, wxString { "" }) };
+	double a {getDblInput(wxString { "Enter a floating point number. E.g. 10.32" },wxString { "" }, wxString { "" }, true) };
+	double b {getDblInput(wxString { "Enter another floating point number." },wxString { "" }, wxString { "" }, true) };
 	wxString c{ getTextInput(wxString { "Enter one of the following: +, -, *, or /" },wxString { "Operator:" }, wxString { "" }) };
 	if (c == '+')
 		std::cout << a << c << b << '=' << a + b << '\n';
@@ -864,48 +948,59 @@ void proj19CalculateAndPrintHeight(double towerHeight, int seconds)
 void MainFrame::proj19()
 {
 	wxStreamToTextRedirector redirect(gui_out);
-	const double towerHeight{ getDblInput(wxString { "Enter the height of the tower in meters." },wxString { "" }, wxString { "" }) };
-	proj19CalculateAndPrintHeight(towerHeight, 0);
-	proj19CalculateAndPrintHeight(towerHeight, 1);
-	proj19CalculateAndPrintHeight(towerHeight, 2);
-	proj19CalculateAndPrintHeight(towerHeight, 3);
-	proj19CalculateAndPrintHeight(towerHeight, 4);
-	proj19CalculateAndPrintHeight(towerHeight, 5);
+	const double towerHeight{ getDblInput(wxString { "Enter the height of the tower in meters." },wxString { "" }, wxString { "" }, true) };
+	if (towerHeight > 0)
+	{
+		proj19CalculateAndPrintHeight(towerHeight, 0);
+		proj19CalculateAndPrintHeight(towerHeight, 1);
+		proj19CalculateAndPrintHeight(towerHeight, 2);
+		proj19CalculateAndPrintHeight(towerHeight, 3);
+		proj19CalculateAndPrintHeight(towerHeight, 4);
+		proj19CalculateAndPrintHeight(towerHeight, 5);
+	}
 }
 void MainFrame::proj20()
 {
+	wxArrayString operatorChoices;
+	operatorChoices.Add(wxT("+"));
+	operatorChoices.Add(wxT("-"));
+	operatorChoices.Add(wxT("*"));
+	operatorChoices.Add(wxT("/"));
+
 	wxStreamToTextRedirector redirect(gui_out);
 	int a{ getIntInput(wxString { "Enter an integer." },wxString { "" }, wxString { "" }) };
+	wxString operatorChoiceStr{ singleChoiceInput(wxString{ "Add, subtract, multiply or divide?" },wxString { "" }, operatorChoices) };
+	wxChar c = operatorChoiceStr[0];
 	int b{ getIntInput(wxString { "Enter another integer." },wxString { "" }, wxString { "" }) };
-	wxString str{ getTextInput(wxString { "Enter one of the following operators: +, -, *, / or %" },wxString { "" }, wxString { "" }) };
-	wxChar c = str[0];
+	if ((a + b) != 0)
 	{
-		switch (c)
 		{
-		case ('+'):
-			std::cout << a << " + " << b << " = " << (a + b) << '\n';
-			break;
-		case  ('-'):
-			std::cout << a << " - " << b << " = " << (a - b) << '\n';
-			break;
-		case  ('*'):
-			std::cout << a << " * " << b << " = " << (a * b) << '\n';
-			break;
-		case  ('/'):
-			std::cout << a << " / " << b << " = " << (a / b) << '\n';
-			break;
-		case  ('%'):
-			std::cout << a << " % " << b << " = " << (a % b) << '\n';
-			break;
-		default:
-		{
-			std::cout << "Please enter a valid operator." << '\n';
-			proj20();
-			break;
-		}
+			switch (c)
+			{
+			case ('+'):
+				std::cout << a << " + " << b << " = " << (a + b) << '\n';
+				break;
+			case  ('-'):
+				std::cout << a << " - " << b << " = " << (a - b) << '\n';
+				break;
+			case  ('*'):
+				std::cout << a << " * " << b << " = " << (a * b) << '\n';
+				break;
+			case  ('/'):
+				std::cout << a << " / " << b << " = " << (a / b) << '\n';
+				break;
+			case  ('%'):
+				std::cout << a << " % " << b << " = " << (a % b) << '\n';
+				break;
+			default:
+			{
+				break;
+			}
+			}
 		}
 	}
 }
+
 void proj21Q1()
 {
 	char askey{ 'a' };
@@ -964,32 +1059,42 @@ void MainFrame::proj21()
 	proj21Q2();
 	proj21Q3();
 }
-//begin project 22
-//Write a for loop that prints every even number from 0 to 20.
+
 void proj22Q1(int value)
 {
 	for (int y{ 0 }; y <= value; y += 2)
+	{
 		std::cout << y << '\n';
+	}
 }
-//Write a function named sumTo() that takes an integer parameter named value, and returns the sum of all the numbers from 1 to value.
-//For example, sumTo(5) should return 15, which is 1 + 2 + 3 + 4 + 5.
 int sumTo(int value)
 {
 	int total{ 0 };
 	for (int count{ 1 }; count <= value; ++count)
+	{
 		total += count;
+	}
 	return total;
 }
 void MainFrame::proj22()
 {
+	start:
 	wxStreamToTextRedirector redirect(gui_out);
 	int value{ getIntInput(wxString { "Enter an integer." },wxString { "" }, wxString { "" }) };
-	std::cout << "Printing every even number from 0 to " << value << '.' << '\n';
-	proj22Q1(value);
-	std::cout << '\n';
-	std::cout << "Printing the sum of all the numbers from 1 to " << value << ". Example: entered number 5: (1 + 2 + 3 + 4 + 5) = 15" << '\n';
-	std::cout << sumTo(value);
+	if (value > 0)
+	{
+		std::cout << "Printing every even number from 0 to " << value << '.' << '\n';
+		proj22Q1(value);
+		std::cout << '\n' << "Printing the sum of all the numbers from 1 to " << value << ". Example: entered number 5: (1 + 2 + 3 + 4 + 5) = 15" << '\n';
+		std::cout << sumTo(value);
+	}
+	else if (value < 0)
+	{
+		errorMessage(wxString("Enter a positive number."), gui_out);
+		goto start;
+	}
 }
+
 void MainFrame::proj23Auto()
 {
 	srand((unsigned)time(0));//sets the random seed to the current time
@@ -1004,14 +1109,12 @@ void MainFrame::proj23Auto()
 		<< "About 25s run time for 100,000,000 iterations on creator's machine." << '\n'
 		<< "About 238s run time for 1,000,000,000 iterations on creator's machine." << '\n' << '\n';
 
-	double iterations{ getDblInput(wxString { "Enter amount of iterations." },wxString { "" }, wxString { "" }) };
+	double iterations{ getDblInput(wxString { "Enter amount of iterations." },wxString { "" }, wxString { "" }, false) };
 	if (iterations > 0 && iterations <= 1000000000)
 	{
 		wxBusyCursor wait;
 		auto start = std::chrono::high_resolution_clock::now();
-		//std::cout << std::setprecision(0) << std::fixed << "Running " << iterations << " times..." << '\n' << '\n';
-		progressMessage(wxString("Processing..."), wxString("Processed iterations: 0"),iterations, gui_out);
-		//gui_gauge->SetRange(iterations);
+		progressMessage(wxString("Processing..."), wxString("Processed iterations: 0"), iterations, gui_out);
 		for (int count = 0; count < iterations; count++) //user chooses how many times to run this loop
 		{
 			correctDoor = (rand() % 3) + 1; //randomly picks the correct door
@@ -1038,21 +1141,6 @@ void MainFrame::proj23Auto()
 			if (secondChoice == correctDoor)//counts wins for swapping
 				++swapWinCounter;
 
-			/*if (iterations <= 100000000)
-			{
-				if (count % 100000 == 0)
-				{
-					//std::cout << count << " iterations ran.";
-					gui_gauge->SetValue(count);
-				}
-			}
-			else
-			{
-				if (count % 100000 == 0)
-				{
-					gui_gauge->Pulse();
-				}
-			}*/
 			if (count % 100000 == 0)
 			{
 				wxString updater = wxString::Format(wxT("Processed iterations: %d"), count);
@@ -1073,17 +1161,15 @@ void MainFrame::proj23Auto()
 				break;
 			}
 		}
-		//gui_gauge->SetValue(iterations);
+		auto finish = std::chrono::high_resolution_clock::now();
 		gui_gauge_dialog->Update(iterations);
 		if (gui_gauge_dialog->WasCancelled() == false)
 		{
 			std::cout << iterations << " iterations ran." << '\n' << "Wins for Keep: " << std::setprecision(0) << keepWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((keepWinCounter / iterations) * 100) << '%' << '\n'
 				<< "Wins for Swap: " << std::setprecision(0) << swapWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((swapWinCounter / iterations) * 100) << '%' << '\n' << '\n';
 
-			auto finish = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double> elapsed = finish - start;
 			std::cout << "Run time: " << elapsed.count() << 's' << std::scientific;
-			//wxString continueAuto{ getTextInput(wxString { "Run again?" },wxString { "" }, wxString { "" }) };
 			int continueAuto = wxMessageBox("Run again?", " ", wxYES_NO, this);
 			if (continueAuto == wxYES)
 			{
@@ -1112,8 +1198,6 @@ void MainFrame::proj23Manual()
 	uint64_t swapWinCounter{};
 	while (continueManual == wxYES)
 	{
-		//start:
-		//int firstChoice{ getIntInput(wxString { "Pick door 1, 2 or 3?" },wxString { "" }, wxString { "" }) };
 		wxArrayString manualChoices;
 		manualChoices.Add(wxT("1"));
 		manualChoices.Add(wxT("2"));
@@ -1132,14 +1216,9 @@ void MainFrame::proj23Manual()
 			else if (correctDoor == 3 && firstChoice == 3)
 				removedDoor = (rand() % 2) + 1;				//randomly picks 1 or 2
 
-			//std::cout << "First choice: " << firstChoice << '\n';
-			//std::cout << "Door " << removedDoor << " is not the correct door and has been removed." << '\n' << '\n';
-			//wxString removedDoorStr = wxString::Format("Door %d", removedDoor);
-			//wxString swapChoice{ getTextInput(wxString { "Swap to the other door or Keep yours?" },wxString { ""}, wxString {""}) };
 			wxArrayString manualSwapKeepChoices;
 			manualSwapKeepChoices.Add(wxT("Swap"));
 			manualSwapKeepChoices.Add(wxT("Keep"));
-			//manualChoices.Add(wxT("3"));
 			wxString swapChoice{ singleChoiceInput(wxString{ "Swap to the other door or Keep yours?" },wxString { "" }, manualSwapKeepChoices) };
 
 			if ((firstChoice == 1 && removedDoor == 2) || (firstChoice == 2 && removedDoor == 1))//swaps for door 3 if 1 or 2 were removed
@@ -1202,40 +1281,17 @@ void MainFrame::proj23()
 	proj23Choices.Add(wxT("Automatic"));
 	proj23Choices.Add(wxT("Manual"));
 		wxString choice23{ singleChoiceInput(wxString{ "Automatic or manual Monty Hall program?" },wxString { "" }, proj23Choices) };
-	/*wxString str{getTextInput(wxString {"Automatic or manual Monty Hall program?"},wxString {""}, wxString {""})};
-	int choice23{};
-	if (str == "automatic" || str == "auto" || str == "a")
-	{
-		choice23 = 1;
-	}
-	else if (str == "manual" || str == "m")
-	{
-		choice23 = 2;
-	}
-	switch (choice23)
-	{
-	case 0:
-		proj23Auto();
-		break;
-	case 1:
-		proj23Manual();
-		break;
-	default: std::cout << "Error, invalid choice. Please choose again." << '\n' << '\n';
-		proj23();
-		break;
-	}*/
 	if (choice23 == "Automatic")
 		proj23Auto();
 	else if (choice23 == "Manual")
 		proj23Manual();
 }
+
 double proj24CalculateHeight(double initialHeight, int seconds)
 {
 	double distanceFallen = constants::gravity * seconds * seconds / 2;
 	double heightNow = initialHeight - distanceFallen;
 
-	// Check whether we've gone under the ground
-	// If so, set the height to ground-level
 	if (heightNow < 0.0)
 		return 0.0;
 	else
@@ -1251,24 +1307,30 @@ void proj24CalculateAndPrintHeight(double initialHeight, int time)
 void MainFrame::proj24()
 {
 	wxStreamToTextRedirector redirect(gui_out);
-	double initialHeight{getDblInput(wxString { "Enter the initial height of the tower in meters." },wxString { "" }, wxString { "" }) };
-	std::cout << "The ball is dropped from " << std::fixed << std::setprecision(2) <<  initialHeight << " meters." << '\n';
-	int seconds{ 1 };
-	double heightNow{ proj24CalculateHeight(initialHeight, seconds) };
-	wxBusyCursor wait;
-	auto start = std::chrono::high_resolution_clock::now();
-	if (heightNow > 0)
-		while (heightNow > 0)
-		{
-			proj24CalculateAndPrintHeight(initialHeight, seconds);
-			++seconds;
-			heightNow = proj24CalculateHeight(initialHeight, seconds);
-		}
-	std::cout << "At " << seconds << " seconds, the ball is on the ground." << '\n' << '\n';
-	auto finish = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> elapsed = finish - start;
-	std::cout << "Function run time: " << std::setprecision(2) << std::fixed << elapsed.count() << " s\n" << std::scientific;
+	double initialHeight{getDblInput(wxString { "Enter the initial height of the tower in meters." },wxString { "" }, wxString { "" }, true) };
+	if (initialHeight > 0)
+	{
+		std::cout << "The ball is dropped from " << std::fixed << std::setprecision(2) << initialHeight << " meters." << '\n';
+		int seconds{ 1 };
+		double heightNow{ proj24CalculateHeight(initialHeight, seconds) };
+		wxBusyCursor wait;
+		auto start = std::chrono::high_resolution_clock::now();
+		if (heightNow > 0)
+			while (heightNow > 0)
+			{
+				proj24CalculateAndPrintHeight(initialHeight, seconds);
+				++seconds;
+				heightNow = proj24CalculateHeight(initialHeight, seconds);
+				gui_gauge->Pulse();
+			}
+		gui_gauge->SetValue(0);
+		std::cout << "At " << seconds << " seconds, the ball is on the ground." << '\n' << '\n';
+		auto finish = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> elapsed = finish - start;
+		std::cout << std::fixed << "Run time: " << elapsed.count() << 's' << std::scientific;
+	}
 }
+
 bool proj25IsPrime(int num)
 {
 	if (num == 0 || num == 1)

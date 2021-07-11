@@ -48,6 +48,13 @@ std::string proj3String()
 									//Forward declarations can be used for a seperate file to declare the function before it's defined.
 									//Forward declarations can also be used to declare a function before it's defined in the same file.
 									//This forward declaration is being used in 'Addition.h', it's good practice to create a header file to handle all forward declarations.
+int proj3GetInteger()					//Function from Addition.cpp
+{
+	std::cout << "Enter an integer: ";
+	int y{};
+	std::cin >> y;
+	return y;
+}
 void proj3()
 {
 	int a{ proj3GetInteger() };		//the value of 'a' is determined by the 1st calling of 'getInteger'
@@ -457,17 +464,17 @@ void proj16()
 std::string proj17String()
 {
 	std::string str{ R"(
-int proj17ReadNumber(); //From Addition.h
-void proj17WriteAnswer(int input);
+int proj17ReadNumber();					//From Addition.h
+void proj17WriteAnswer(int input);		//From Addition.h
 
-int proj17ReadNumber()//From Addition.cpp
+int proj17ReadNumber()					//From Addition.cpp
 {
 	int input{};
 	std::cout << "Enter an integer:";
 	std::cin >> input;
 	return input;
 }
-void proj17WriteAnswer(int input)
+void proj17WriteAnswer(int input)		//Fom Addition.cpp
 {
 	std::cout << "The sum is " << input << '\n';
 }
