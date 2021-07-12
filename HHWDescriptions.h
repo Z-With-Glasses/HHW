@@ -7,7 +7,7 @@ static wxString proj1Info()
 }
 static wxString proj2Info()
 {
-	wxString str("This project asks the user to enter an integer and then doubles it. First usage of paramaters in functions.");
+	wxString str("This project asks the user to enter an integer and then doubles it. First usage of parameters in functions.");
 	return str;
 }static wxString proj3Info()
 {
@@ -53,7 +53,7 @@ static wxString proj12Info()
 	return str;
 }static wxString proj13Info()
 {
-	wxString str("This project uses enumarators and enumerated classes.");
+	wxString str("This project uses enumerators and enumerated classes.");
 	return str;
 }static wxString proj14Info()
 {
@@ -69,15 +69,15 @@ static wxString proj12Info()
 	return str;
 }static wxString proj17Info()
 {
-	wxString str("Results of the chapter 2 quiz from learncpp.com. Takes two integers from the user and adds them.");
+	wxString str("Results of the chapter 2 quiz from learncpp.com.\n\nTakes two integers from the user and adds them.");
 	return str;
 }static wxString proj18Info()
 {
-	wxString str("Results of the chapter 4 quiz from learncpp.com. Asks the user to enter two floating point numbers and a mathematical symbol. The program computes the numbers and prints the results. If an invalid symbol is entered it prints nothing.");
+	wxString str("Results of the chapter 4 quiz from learncpp.com.\n\nAsks the user to enter two floating point numbers and a mathematical symbol. The program computes the numbers and prints the results. If an invalid symbol is entered it prints nothing.");
 	return str;
 }static wxString proj19Info()
 {
-	wxString str("Results of the chapter 4 quiz from learncpp.com. This project asks the user to enter the height of a tower Then outputs the height of a ball dropped from the tower every second for 5 seconds.");
+	wxString str("Results of the chapter 4 quiz from learncpp.com.\n\nThis project asks the user to enter the height of a tower Then outputs the height of a ball dropped from the tower every second for 5 seconds.");
 	return str;
 }static wxString proj20Info()
 {
@@ -86,7 +86,7 @@ static wxString proj12Info()
 }
 static wxString proj21Info()
 {
-	wxString str("Results of the chapter 7 quiz from learncpp.com. This project uses loops and nested loops in various ways.");
+	wxString str("Results of the chapter 7 quiz from learncpp.com.\n\nThis project uses loops and nested loops in various ways.");
 	return str;
 }
 static wxString proj22Info()
@@ -95,7 +95,7 @@ static wxString proj22Info()
 	return str;
 }static wxString proj23Info()
 {
-	wxString str("This project demonstrates the Monty Hall problem, the user is asked to choose a door from three doors.\n\nOnly one choice is correct, the other two are incorrect.\n\nAfter choosing a door, one incorrect door is removed. They are then asked if they would like to keep their door or switch to the remaining door.\n\nDespite seeming like a 50/50 chance, statistically if they switch their chances are 2/3 while if they stay it's 1/3, this project demonstrates that.");
+	wxString str("This project demonstrates the Monty Hall problem, the user is asked to choose a door from three doors.\n\nOnly one choice is correct, the other two are incorrect.\n\nAfter choosing a door, one incorrect door is removed. They are then asked if they would like to keep their door or switch to the remaining door.\n\nDespite seeming like a 50/50 chance, statistically if they switch their chances are 2/3 while if they stay it's 1/3, this project demonstrates that.\n\nAt roughly 100 iterations the results will be close to: \n34% wins for keep\n66% wins for swap.\nThe more iterations the more obvious this becomes.\n\nThis code was written in a way that makes the method more obvious, not in a way favoring optimization.");
 	return str;
 }static wxString proj24Info()
 {

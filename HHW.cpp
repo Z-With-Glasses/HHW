@@ -6,6 +6,8 @@
 #include "HHWDescriptions.h"
 #include "HHWProjStrings.h"
 #include "setup.h"
+#include <algorithm>
+#include <array>
 #include <cassert>
 #include <chrono>
 #include <cmath>
@@ -17,11 +19,13 @@
 #include <ios>
 #include <iostream>
 #include <iterator>																
-#include <limits>																
+#include <limits>
+#include <random>
 #include <stdlib.h>																
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 #include <wx/arrstr.h>
 #include <wx/choicdlg.h> 
 #include <wx/colour.h>
@@ -762,10 +766,8 @@ void MainFrame::proj11()
 void MainFrame::proj12()
 {
 	wxStreamToTextRedirector redirect(gui_out);
-	std::string str{ "I saw a red car yesterday."};
-
+	std::string str{ "I saw a blue car yesterday."};
 	str.replace(8, 3, "blue");
-
 	std::cout << str << '\n'; // I saw a blue car yesterday.
 }
 
@@ -775,30 +777,38 @@ enum proj13ItemType
 	ITEMTYPE_TORCH,
 	ITEMTYPE_POTION
 };
+
+std::string getItemName(proj13ItemType itemType)
+{
+	if (itemType == ITEMTYPE_SWORD)
+		return "sword";
+	if (itemType == ITEMTYPE_TORCH)
+		return "torch";
+	if (itemType == ITEMTYPE_POTION)
+		return "potion";
+
+	return "???";
+}
+
 void MainFrame::proj13()
 {
 	wxStreamToTextRedirector redirect(gui_out);
-	// ItemType is the enumerated type we've defined above.
-	// itemType (lower case i) is the name of the variable we're defining (of type ItemType).
-	// ITEMTYPE_TORCH is the enumerated value we're initializing variable itemType with.
-	//proj13ItemType itemType{ ITEMTYPE_TORCH };
-	//auto itemType{ ItemType::ITEMTYPE_TORCH };//Same as above but this is the fully scoped name. Used when enum class is used.
 
-	//std::cout << "You are carrying a " << getItemName(itemType) << '\n';
+	auto itemType{ proj13ItemType::ITEMTYPE_TORCH };
 
-	//The following is an example of using the enum class.
 	enum class Colour
-	{//scoped enumeration
-		red,//red and blue are inside the scope of Colour
+	{
+		red,
 		blue
 	};
-
 	Colour colour{ Colour::red };
 
-	if (colour == Colour::red) //red is not directly accessible, we have to use Colour::red
-		std::cout << "The colour is red!\n";
+	std::cout << "You are carrying a " << getItemName(itemType) << ',';
+	
+	if (colour == Colour::red) 
+		std::cout << " the colour is red!\n";
 	else if (colour == Colour::blue)
-		std::cout << "The colour is blue!\n";
+		std::cout << " the colour is blue!\n";
 }
 
 void MainFrame::proj14()
@@ -844,6 +854,7 @@ void MainFrame::proj15()
 		}
 	}
 }
+
 enum class proj16MonsterType
 {
 	dragon,
@@ -885,8 +896,7 @@ void MainFrame::proj16()
 	printMonster(ogre);
 	printMonster(slime);
 }
-//begin project 17
-//proj17 readNumber() and writeAnswer() are in addition.cpp with forward declarations in Addition.h
+
 void MainFrame::proj17()
 {
 	wxStreamToTextRedirector redirect(gui_out);
@@ -895,17 +905,7 @@ void MainFrame::proj17()
 	if ((a + b) != 0)
 	std::cout << "The sum is " << (a + b) << '\n';
 }
-void proj18CalculateAndPrint(double inputA, char charInput, double inputB)
-{
-	if (charInput == '+')
-		std::cout << inputA << charInput << inputB << '=' << inputA + inputB << '\n';
-	else if (charInput == '-')
-		std::cout << inputA << charInput << inputB << '=' << inputA - inputB << '\n';
-	else if (charInput == '*')
-		std::cout << inputA << charInput << inputB << '=' << inputA * inputB << '\n';
-	else if (charInput == '/')
-		std::cout << inputA << charInput << inputB << '=' << inputA / inputB << '\n';
-}
+
 void MainFrame::proj18()
 {
 	wxArrayString operatorChoices;
@@ -925,16 +925,16 @@ void MainFrame::proj18()
 			switch (c)
 			{
 			case ('+'):
-				std::cout << std::fixed << std::setprecision(10) << a << " + " << b << " = " << (a + b) << '\n';
+				std::cout << std::fixed << a << " + " << b << " = " << (a + b) << '\n';
 				break;
 			case  ('-'):
-				std::cout << std::fixed << std::setprecision(10) << a << " - " << b << " = " << (a - b) << '\n';
+				std::cout << std::fixed << a << " - " << b << " = " << (a - b) << '\n';
 				break;
 			case  ('*'):
-				std::cout << std::fixed << std::setprecision(10) << a << " * " << b << " = " << (a * b) << '\n';
+				std::cout << std::fixed << a << " * " << b << " = " << (a * b) << '\n';
 				break;
 			case  ('/'):
-				std::cout << std::fixed << std::setprecision(10) << a << " / " << b << " = " << (a / b) << '\n';
+				std::cout << std::fixed << a << " / " << b << " = " << (a / b) << '\n';
 				break;
 			default:
 			{
@@ -944,6 +944,7 @@ void MainFrame::proj18()
 		}
 	}
 }
+
 double proj19CalculateBallHeight(double towerHeight, int secondsFallen)
 {
 	double distanceFallen{ (constants::gravity * (static_cast<double>(secondsFallen) * static_cast<double>(secondsFallen)) / 2.0) };
@@ -982,6 +983,7 @@ void MainFrame::proj19()
 		proj19CalculateAndPrintHeight(towerHeight, 5);
 	}
 }
+
 void MainFrame::proj20()
 {
 	wxArrayString operatorChoices;
@@ -1035,8 +1037,6 @@ void proj21Q1()
 	}
 	std::cout << '\n';
 }
-//Print 5 4 3 2 1
-//		4 3 2 1 etcetera to 1
 void proj21Q2()
 {
 	int outer{ 5 };
@@ -1122,17 +1122,19 @@ void MainFrame::proj22()
 void MainFrame::proj23Auto()
 {
 	srand((unsigned)time(0));//sets the random seed to the current time
-	int correctDoor{};
-	int firstChoice{};
-	int removedDoor{};
-	int secondChoice{};
+	std::vector<bool> doors(3, false);//make three doors
+	doors[0] = true; // place correct door
+	std::random_device rd;
+	std::mt19937 gen{ rd() };
+	std::shuffle(doors.begin(), doors.end(), gen);//shuffle doors
 	double keepWinCounter{};
 	double swapWinCounter{};
-	std::cout << "Up to 100 iterations can be actively watched, or up to 1,000,000,000 iterations can be done behind the scenes." << '\n'
-		<< "About 25s run time for 100,000,000 iterations on creator's machine." << '\n'
-		<< "About 238s run time for 1,000,000,000 iterations on creator's machine." << '\n' << '\n';
+	std::cout << "Up to 1,000,000,000 iterations can be done." << '\n'
+		<< "11.3s run time for 100,000,000 iterations on creator's machine." << '\n'
+		<< "112.91s run time for 1,000,000,000 iterations on creator's machine." << '\n' << '\n';
 
 	double iterations{ getDblInput(wxString { "Enter amount of iterations." },wxString { "" }, wxString { "" }, false) };
+
 	if (iterations > 0 && iterations <= 1000000000)
 	{
 		wxBusyCursor wait;
@@ -1140,29 +1142,10 @@ void MainFrame::proj23Auto()
 		progressMessage(wxString("Processing..."), wxString("Processed iterations: 0"), iterations, gui_out);
 		for (int count = 0; count < iterations; count++) //user chooses how many times to run this loop
 		{
-			correctDoor = (rand() % 3) + 1; //randomly picks the correct door
-			firstChoice = (rand() % 3) + 1;//randomly makes the first door choice
-			if (correctDoor != firstChoice)//removes one incorrect door if the first choice was incorrect (example: 6 - correctdoor(2) + firstchoice(1) = 3 or 6-2+1=3)
-				removedDoor = (6 - (correctDoor + firstChoice));
-			else if (correctDoor == 1 && firstChoice == 1)  //these next three ifs remove one incorrect door if the first choice was correct
-				removedDoor = (rand() % 2) + 2;				//randomly picks 2 or 3
-			else if (correctDoor == 2 && firstChoice == 2)
-				removedDoor = (rand() % 4) + 1 <= 2 ? 1 : 3;//randomly picks 1-4, if less than or equal to 2 evaluates to 1 else evaluates to 3
-			else if (correctDoor == 3 && firstChoice == 3)
-				removedDoor = (rand() % 2) + 1;				//randomly picks 1 or 2
-
-			if ((firstChoice == 1 && removedDoor == 2) || (firstChoice == 2 && removedDoor == 1))//swaps for door 3 if 1 or 2 were removed
-				secondChoice = 3;
-			else if ((firstChoice == 3 && removedDoor == 1) || (firstChoice == 1 && removedDoor == 3))//swaps for door 2 if 1 or 3 were removed
-				secondChoice = 2;
-			else if ((firstChoice == 2 && removedDoor == 3) || (firstChoice == 3 && removedDoor == 2))//swaps for door 1 if 2 or 3 were removed
-				secondChoice = 1;
-
-			if (firstChoice == correctDoor)//counts wins for not swapping
+			if (doors[rand() % 3])//randomly pick door, if its true(1), ++keep wins
 				++keepWinCounter;
-
-			if (secondChoice == correctDoor)//counts wins for swapping
-				++swapWinCounter;
+			else
+				++swapWinCounter;//if not, swapping would have won ++swap wins
 
 			if (count % 100000 == 0)
 			{
@@ -1170,13 +1153,6 @@ void MainFrame::proj23Auto()
 				gui_gauge_dialog->Update(count, wxString(updater));
 			}
 
-			if (iterations <= 100)
-			{
-				std::cout << "The first choice was: " << firstChoice << '\n'
-					<< "The door removed was: " << removedDoor << '\n'
-					<< "The door picked if you chose to swap was: " << secondChoice << '\n'
-					<< "The correct door was: " << correctDoor << '\n' << '\n';
-			}
 			if (gui_gauge_dialog->WasCancelled())
 			{
 				gui_gauge_dialog->Destroy();
@@ -1188,11 +1164,11 @@ void MainFrame::proj23Auto()
 		gui_gauge_dialog->Update(iterations);
 		if (gui_gauge_dialog->WasCancelled() == false)
 		{
-			std::cout << std::fixed << iterations << " iterations ran." << '\n' << "Wins for Keep: " << std::setprecision(0) << keepWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((keepWinCounter / iterations) * 100) << '%' << '\n'
-				<< "Wins for Swap: " << std::setprecision(0) << swapWinCounter << '/' << iterations << " = " << std::setprecision(2) << ((swapWinCounter / iterations) * 100) << '%' << '\n' << '\n';
+			std::cout << std::fixed << std::setprecision(0) << iterations <<  " iterations ran." << '\n' << '\n' << "Wins for Keep: " << keepWinCounter << '/' << iterations << " = " << std::setprecision(7) << ((keepWinCounter / iterations) * 100) << '%' << '\n'
+				<< "Wins for Swap: " << std::setprecision(0) << swapWinCounter << '/' << iterations << " = " << std::setprecision(7) << ((swapWinCounter / iterations) * 100) << '%' << '\n' << '\n';
 
 			std::chrono::duration<double> elapsed = finish - start;
-			std::cout << "Run time: " << elapsed.count() << 's';
+			std::cout << "Run time: " << std::setprecision(2) << elapsed.count() << 's';
 			int continueAuto = wxMessageBox("Run again?", " ", wxYES_NO, this);
 			if (continueAuto == wxYES)
 			{
@@ -1214,7 +1190,7 @@ void MainFrame::proj23Manual()
 	int iterations{};
 	int correctDoor{};
 	int removedDoor{};
-	int secondChoice{};
+	int swappedToDoor{};
 	int winsForPlayer{};
 	int continueManual = wxYES;
 	uint64_t keepWinCounter{};
@@ -1230,7 +1206,8 @@ void MainFrame::proj23Manual()
 		if (firstChoice != 0)
 		{
 			correctDoor = (rand() % 3) + 1; //randomly picks the correct door
-			if (correctDoor != firstChoice) //removes one incorrect door if the first choice was incorrect (example: 6 - correctdoor(2) + firstchoice(1) = 3 or 6-2+1=3)
+
+			if (correctDoor != firstChoice)//removes one incorrect door if the first choice was incorrect (example: 6 - correctdoor(2) + firstchoice(1) = 3 or 6-2+1=3)
 				removedDoor = (6 - (correctDoor + firstChoice));
 			else if (correctDoor == 1 && firstChoice == 1)  //these next three ifs remove one incorrect door if the first choice was correct
 				removedDoor = (rand() % 2) + 2;				//randomly picks 2 or 3
@@ -1245,29 +1222,25 @@ void MainFrame::proj23Manual()
 			wxString swapChoice{ singleChoiceInput(wxString{ "Swap to the other door or Keep yours?" },wxString { "" }, manualSwapKeepChoices) };
 
 			if ((firstChoice == 1 && removedDoor == 2) || (firstChoice == 2 && removedDoor == 1))//swaps for door 3 if 1 or 2 were removed
-				secondChoice = 3;
+				swappedToDoor = 3;
 			else if ((firstChoice == 3 && removedDoor == 1) || (firstChoice == 1 && removedDoor == 3))//swaps for door 2 if 1 or 3 were removed
-				secondChoice = 2;
+				swappedToDoor = 2;
 			else if ((firstChoice == 2 && removedDoor == 3) || (firstChoice == 3 && removedDoor == 2))//swaps for door 1 if 2 or 3 were removed
-				secondChoice = 1;
+				swappedToDoor = 1;
 
 			if (firstChoice == correctDoor)//counts wins for not swapping
 				++keepWinCounter;
 
-			if (secondChoice == correctDoor)//counts wins for swapping
+			if (swappedToDoor == correctDoor)//counts wins for swapping
 				++swapWinCounter;
 
 			std::cout << "You chose door: " << firstChoice << '\n'
 				<< "The door removed was: " << removedDoor << '\n';
 
 			if (swapChoice == "Swap")
-			{
 				std::cout << "You chose to swap your door." << '\n';
-			}
-			else if (swapChoice == "Keep")
-			{
+			else
 				std::cout << "You chose to keep your door." << '\n';
-			}
 
 			std::cout << "The correct door was: " << correctDoor << '\n';
 
@@ -1277,9 +1250,7 @@ void MainFrame::proj23Manual()
 				std::cout << "Congratulations, you win!" << '\n' << '\n';
 			}
 			else
-			{
 				std::cout << "Sorry, you lose." << '\n' << '\n';
-			}
 
 			iterations++;
 			double doubleKeepWin{ static_cast<double>(keepWinCounter) };//convert all unsigned integers to double to use in division to find percentage of wins

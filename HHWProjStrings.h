@@ -292,28 +292,28 @@ std::string proj13String()
 	ITEMTYPE_POTION
 };
 
-/*std::string getItemName(proj13ItemType itemType)
+std::string getItemName(proj13ItemType itemType)
 {
 	if (itemType == ITEMTYPE_SWORD)
-		return "Sword";
+		return "sword";
 	if (itemType == ITEMTYPE_TORCH)
-		return "Torch";
+		return "torch";
 	if (itemType == ITEMTYPE_POTION)
-		return "Potion";
+		return "potion";
 
 	// Just in case we add a new item in the future and forget to update this function
 	return "???";
 }
-*/
+
 void proj13()
 {
 	// ItemType is the enumerated type we've defined above.
 	// itemType (lower case i) is the name of the variable we're defining (of type ItemType).
 	// ITEMTYPE_TORCH is the enumerated value we're initializing variable itemType with.
 	//proj13ItemType itemType{ ITEMTYPE_TORCH };
-	//auto itemType{ ItemType::ITEMTYPE_TORCH };//Same as above but this is the fully scoped name. Used when enum class is used.
+	auto itemType{ proj13ItemType::ITEMTYPE_TORCH };//Same as above but this is the fully scoped name. Used when enum class is used.
 
-	//std::cout << "You are carrying a " << getItemName(itemType) << '\n';
+	std::cout << "You are carrying a " << getItemName(itemType) << ',';
 
 	//The following is an example of using the enum class.
 	enum class Colour
@@ -325,9 +325,9 @@ void proj13()
 	Colour colour{ Colour::red };
 
 	if (colour == Colour::red) //red is not directly accessible, we have to use Colour::red
-		std::cout << "The colour is red!\n";
+		std::cout << " the colour is red!\n";
 	else if (colour == Colour::blue)
-		std::cout << "The colour is blue!\n";
+		std::cout << " the colour is blue!\n";
 })" };
 return str;
 }
@@ -745,9 +745,9 @@ std::string proj23String()
 	std::cin >> iterations;
 	for (int count = 0; count < iterations; count++) //user chooses how many times to run this loop
 	{
-		correctDoor = (rand() % 3) + 1; //randomly picks the correct door
-		firstChoice = (rand() % 3) + 1;//randomly makes the first door choice
-		if (correctDoor != firstChoice)//removes one incorrect door if the first choice was incorrect (example: 6 - correctdoor(2) + firstchoice(1) = 3 or 6-2+1=3)
+		correctDoor = (rand() % 3) + 1;					//randomly picks the correct door
+		firstChoice = (rand() % 3) + 1;					//randomly makes the first door choice
+		if (correctDoor != firstChoice)				//removes one incorrect door if the first choice was incorrect (example: 6 - correctdoor(2) + firstchoice(1) = 3 or 6-2+1=3)
 			removedDoor = (6 - (correctDoor + firstChoice));
 		else if (correctDoor == 1 && firstChoice == 1)  //these next three ifs remove one incorrect door if the first choice was correct
 			removedDoor = (rand() % 2) + 2;				//randomly picks 2 or 3
