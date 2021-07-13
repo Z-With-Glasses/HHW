@@ -137,7 +137,7 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
 	wxFont myFont(10, wxFONTFAMILY_SCRIPT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
 	this->SetFont(myFont);
 
-    wxString choices[25] =
+    wxString choices[28] =
     {
      _T("Project 1: Integer Doubling"),
 	 _T("Project 2: Int Doubling With Parameters"),
@@ -163,14 +163,17 @@ MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &si
 	 _T("Project 22: For Loop Of Evens"),
 	 _T("Project 23: The Monty Hall Problem"),
 	 _T("Project 24: Ball Drop From Tower #2"),
-	 _T("Project 25: Prime Check With Asserts")
+	 _T("Project 25: Prime Number Check With Assert"),
+	 _T("Project Continue: Program's Continue Function"),
+	 _T("Project Choice: Program's Choice Function"),
+	 _T("Project Main: Program's Main Function")
     };
 
 	gui_split = new wxSplitterWindow(this, ID_splitter, wxDefaultPosition, wxSize(600,400), wxSP_3D | wxSP_LIVE_UPDATE);
 	gui_out = new wxTextCtrl(gui_split, ID_out, wxString("Double click a project or select it with the arrow keys and press enter to run it here."), wxDefaultPosition, wxSize(600, 200), wxTE_READONLY | wxTE_MULTILINE | wxTE_DONTWRAP | wxTE_RICH | wxBORDER_THEME);
 	gui_disp = new wxTextCtrl(gui_split, ID_out, wxString("Click on a project to display the code for it here."), wxDefaultPosition, wxSize(600, 200), wxTE_READONLY | wxTE_MULTILINE | wxTE_DONTWRAP | wxTE_RICH | wxBORDER_THEME);
 	wxPanel* panel_choice = new wxPanel(this, ID_panel_choice, wxDefaultPosition, wxSize(315, 600), wxBORDER_RAISED);
-	gui_choice = new wxListBox(panel_choice, ID_choice, wxDefaultPosition, wxSize(315, 600), 25, choices, wxLB_SINGLE | wxVSCROLL | wxWANTS_CHARS);
+	gui_choice = new wxListBox(panel_choice, ID_choice, wxDefaultPosition, wxSize(315, 600), 28, choices, wxLB_SINGLE | wxVSCROLL | wxWANTS_CHARS);
 	gui_info = new wxTextCtrl(this, ID_info, wxString("Select a project to display the code or double click to run the project.\n\nThis program was created by Zack Green on 2021/07/05 using C++ and wxWidgets.\n\n           github.com/Z-With-Glasses"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_MULTILINE | wxTE_RICH | wxBORDER_THEME);
 	gui_gauge = new wxGauge(this, ID_gauge, INT_MAX, wxDefaultPosition, wxSize(315, 15), wxGA_HORIZONTAL);
 
@@ -251,38 +254,37 @@ double MainFrame::getDblInput(wxString message, wxString prompt, wxString captio
 {
 	start:
 	wxString input{ wxGetTextFromUser(wxString(message), wxString(prompt), wxString(caption), gui_disp, wxCoord(850), wxCoord(350), false) };
-	double value = wxAtof(input);
-	int inputLength = (input.Length());
-	if (wxIsdigit(input.GetChar(0)))
-	{
-		for (int x = 0; x < inputLength; ++x)
-		{
-			if (fractionalCheck)//if fractional number allowed
-			{
-				if (!wxIsdigit(input.GetChar(x)) && !wxIspunct(input.GetChar(x)))
-				{
-					errorMessage(wxString("Error! Enter a double."), this);
-						goto start;
-				}
-			}
-			else if (!fractionalCheck)//if fractional number not allowed but double needed for fractional division
-			{
-				if (!wxIsdigit(input.GetChar(x)))
-				{
-					errorMessage(wxString("Error! Enter a whole number."), this);
-					goto start;
-				}
-			}
-		}
-	}
-	else if (input == wxString("")) 
+	if (input == wxString(""))
 	{
 		return 0;
 	}
-	else
+	double value = wxAtof(input);
+	int inputLength = (input.Length());
+	int periodCount{};
+	for (int x = 0; x < inputLength; ++x)
 	{
-		errorMessage(wxString("Error! Enter a double."), this);
-		goto start;
+		if (input.GetChar(x) == '.')
+			periodCount++;
+		if (periodCount > 1)
+		{
+			errorMessage(wxString("Error! Too many periods."), this);// emsures only one period is entered for fractional numbers
+			goto start;
+		}
+		if (wxIsalpha(input.GetChar(x)))
+		{
+			errorMessage(wxString("Error! Characters not allowed."), this);//ensures no characters are entered
+			goto start;
+		}
+		else if (!fractionalCheck && (wxIspunct(input.GetChar(x))))//if fractional number not allowed but double needed for fractional division
+		{
+			errorMessage(wxString("Error! Enter a whole number."), this);
+			goto start;
+		}
+		else if (fractionalCheck && ((input.GetChar(x) != '.') && !wxIsdigit(input.GetChar(x))))//ensures only periods are allowed for fractional numbers
+		{
+			errorMessage(wxString("Error! Special characters not allowed."), this);
+			goto start;
+		}
 	}
 	return value;
 }
@@ -580,6 +582,21 @@ void MainFrame::displayAndRun(int evntType)
 			break;
 		}
 		break;
+	case 25:
+		gui_disp->SetLabel(projContinueString());
+		SetStatusText("Program's Continue Function");
+		gui_info->SetLabel(projContinueInfo());
+		break;
+	case 26:
+		gui_disp->SetLabel(projChoiceString());
+		SetStatusText("Program's Choice Function");
+		gui_info->SetLabel(projChoiceInfo());
+		break;
+	case 27:
+		gui_disp->SetLabel(projMainString());
+		SetStatusText("Program's Main Function");
+		gui_info->SetLabel(projMainInfo());
+		break;
 	default:
 		{
 		wxStreamToTextRedirector redirect(gui_out);
@@ -752,7 +769,7 @@ void MainFrame::proj11()
 	int age{ getIntInput(wxString { "Enter your age." },wxString { "Age" }, wxString { "" })};
 	if (age > 0)
 	{
-		double nameLength{ static_cast<double>(name.length()) };//name.length returns an unsigned integer, bad to use and we need a double for the division anyway
+		double nameLength{ static_cast<double>(name.length()) };
 		double nameAgeDiv = { age / nameLength };
 		std::cout << "You've lived " << nameAgeDiv << " years for each letter in your name.";
 	}
@@ -766,9 +783,9 @@ void MainFrame::proj11()
 void MainFrame::proj12()
 {
 	wxStreamToTextRedirector redirect(gui_out);
-	std::string str{ "I saw a blue car yesterday."};
+	std::string str{ "I saw a red car yesterday."};
 	str.replace(8, 3, "blue");
-	std::cout << str << '\n'; // I saw a blue car yesterday.
+	std::cout << str << '\n';
 }
 
 enum proj13ItemType

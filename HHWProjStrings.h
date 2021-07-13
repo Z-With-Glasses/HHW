@@ -731,7 +731,77 @@ return str;
 //Statistically your chance of being correct with your first pick is 1/3, if you swap on the second choice your chance is 2/3 since one wrong door has been removed.
 std::string proj23String()
 {
-	std::string str{ R"(void proj23Auto()
+	std::string str{ R"(//This is the function used in this program, optimized for speed. It's 2x as fast as the one below. 
+//Here you'll see some wxWidgets code that's absent in every other shown function. 
+//A lot needed to be changed to make the functions work in this GUI with wxWidgets.
+//Look at HHW.cpp to see the true code this program uses.
+void MainFrame::proj23Auto()		
+{
+	srand((unsigned)time(0));//sets the random seed to the current time
+	std::vector<bool> doors(3, false);	//make three doors
+	doors[0] = true;	//place correct door
+	std::random_device rd;		//random number generator used for mt19937
+	std::mt19937 gen{ rd() };		//one of c++'s best psuedo-random number generators ( there's no such thing as true random, google this for a better understanding, it's a deep topic)
+	std::shuffle(doors.begin(), doors.end(), gen);	//shuffle doors
+	double keepWinCounter{};
+	double swapWinCounter{};
+	std::cout << "Up to 1,000,000,000 iterations can be done." << '\n'
+		<< "11.3s run time for 100,000,000 iterations on creator's machine." << '\n'
+		<< "112.91s run time for 1,000,000,000 iterations on creator's machine." << '\n' << '\n';
+
+	double iterations{ getDblInput(wxString { "Enter amount of iterations." },wxString { "" }, wxString { "" }, false) };	//get user input for how many iterations to run
+
+	if (iterations > 0 && iterations <= 1000000000)		//ensures valid range of iterations
+	{
+		wxBusyCursor wait;		//sets the cursor to OS busy cursor
+		auto start = std::chrono::high_resolution_clock::now();		//starts a timer
+		progressMessage(wxString("Processing..."), wxString("Processed iterations: 0"), iterations, gui_out);
+		for (int count = 0; count < iterations; count++)	//user chooses how many times to run this loop
+		{
+			if (doors[rand() % 3])		//randomly pick door, if its true(1), ++keep wins
+				++keepWinCounter;
+			else
+				++swapWinCounter;		//if not, swapping would have won ++swap wins
+
+			if (count % 100000 == 0)		//updates the progress dialog displayed on screen every 100000 iterations
+			{
+				wxString updater = wxString::Format(wxT("Processed iterations: %d"), count);
+				gui_gauge_dialog->Update(count, wxString(updater));
+			}
+
+			if (gui_gauge_dialog->WasCancelled())		//closes the progress dialog, ends the function and clears the GUI if user presses cancel
+			{
+				gui_gauge_dialog->Destroy();
+				gui_out->Clear();
+				break;
+			}
+		}
+		auto finish = std::chrono::high_resolution_clock::now();		//ends the clock
+		gui_gauge_dialog->Update(iterations);		//updates the progress dialog with the final iteration count
+		if (gui_gauge_dialog->WasCancelled() == false)		//doesn't run if user cancelled
+		{
+			std::cout << std::fixed << std::setprecision(0) << iterations <<  " iterations ran." << '\n' << '\n' << "Wins for Keep: " << keepWinCounter << '/' << iterations << " = " << std::setprecision(7) << ((keepWinCounter / iterations) * 100) << '%' << '\n'
+				<< "Wins for Swap: " << std::setprecision(0) << swapWinCounter << '/' << iterations << " = " << std::setprecision(7) << ((swapWinCounter / iterations) * 100) << '%' << '\n' << '\n';
+
+			std::chrono::duration<double> elapsed = finish - start;
+			std::cout << "Run time: " << std::setprecision(2) << elapsed.count() << 's';
+			int continueAuto = wxMessageBox("Run again?", " ", wxYES_NO, this);
+			if (continueAuto == wxYES)
+			{
+				gui_out->Clear();
+				proj23Auto();
+			}
+		}
+	}
+	else if (iterations != 0)		//doesn't print if user cancelled
+	{
+		errorMessage(wxString("Valid range is 1-1,000,000,000!"), gui_out);
+		gui_out->Clear();
+		proj23Auto();
+	}
+}
+
+void proj23Auto()		//this version was made to demonstrate the accuracy and true randomness of the function
 {
 	srand((unsigned)time(0));//sets the random seed to the current time
 	int correctDoor{};
@@ -953,7 +1023,7 @@ return str;
 }
 //begin project 26
 
-std::string continueString()
+std::string projContinueString()
 {
 	std::string str{ R"(bool mainContinue()
 {
@@ -1137,17 +1207,21 @@ std::string projChoiceString()
 })" };
 return str;
 }
-/*void joke()
+/*bool errors = {1};
+void joke(bool error)
 {
-	std::uint64_t errors{};
-	if
-		(errors == 0)
-		std::cout << "Nothing new to learn." << '\n';
-	else if
-		(errors = 1)
+	if (!errors)
+		std::cout << "Nothing more to learn." << '\n';
+	else
 		std::cout << "There's always more to learn." << '\n';
+}
+
+int main()
+{
+	joke(0);
+	return 0;
 }*/
-std::string mainString()
+std::string projMainString()
 {
 	std::string str{ R"(int main()
 {
