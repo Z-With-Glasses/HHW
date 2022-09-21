@@ -266,7 +266,7 @@ start:
 			periodCount++;
 		if (periodCount > 1)
 		{
-			errorMessage(wxString("Error! Too many periods."), this);// emsures only one period is entered for fractional numbers
+			errorMessage(wxString("Error! Too many decimal points."), this);// emsures only one period is entered for fractional numbers
 			goto start;
 		}
 		if (wxIsalpha(input.GetChar(x)))
