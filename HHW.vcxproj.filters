@@ -29,5 +29,8 @@
     <ClInclude Include="HHWProjStrings.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="HHWIncludes.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

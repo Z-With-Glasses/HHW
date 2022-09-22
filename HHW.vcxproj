@@ -165,6 +165,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Addition.h" />
+    <ClInclude Include="HHWIncludes.h" />
     <ClInclude Include="HHWDescriptions.h" />
     <ClInclude Include="HHWProjStrings.h" />
   </ItemGroup>

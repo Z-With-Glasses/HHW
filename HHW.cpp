@@ -1,44 +1,8 @@
-#include <wx/wxprec.h>
-#ifndef WX_PRECOMP
-#include <wx/wx.h>
-#endif
 #include "Addition.h"
 #include "HHWDescriptions.h"
+#include "HHWIncludes.h"
 #include "HHWProjStrings.h"
-#include <algorithm>
-#include <array>
-#include <cassert>
-#include <chrono>
-#include <cmath>
-#include <cstdint>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-#include <iomanip>
-#include <ios>
-#include <iostream>
-#include <iterator>																
-#include <limits>
-#include <random>
-#include <stdlib.h>																
-#include <string>
-#include <string_view>
-#include <utility>
-#include <vector>
-#include <wx/arrstr.h>
-#include <wx/choicdlg.h> 
-#include <wx/colour.h>
-#include <wx/font.h>
-#include <wx/gauge.h>
-#include <wx/listbox.h>
-#include <wx/msgdlg.h>
-#include <wx/numdlg.h> 
-#include <wx/panel.h>
-#include <wx/progdlg.h>
-#include <wx/splitter.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/textdlg.h>
+
 class MyApp : public wxApp
 {
 public:
